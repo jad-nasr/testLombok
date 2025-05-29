@@ -1,6 +1,6 @@
-package com.jadTestLombok.jadTestLombok.service;
+package com.testApplication.service;
 
-import com.jadTestLombok.jadTestLombok.dto.Course;
+import com.testApplication.dto.Course;
 import org.springframework.stereotype.Service;
 
 import java.util.ArrayList;

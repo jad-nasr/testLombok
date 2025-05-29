@@ -1,10 +1,10 @@
-package com.jadTestLombok.jadTestLombok;
+package com.testApplication;
 
 import org.junit.jupiter.api.Test;
 import org.springframework.boot.test.context.SpringBootTest;
 
 @SpringBootTest
-class JadTestLombokApplicationTests {
+class testApplicationTests {
 
 	@Test
 	void contextLoads() {

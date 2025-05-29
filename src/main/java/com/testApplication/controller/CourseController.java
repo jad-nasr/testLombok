@@ -1,7 +1,7 @@
-package com.jadTestLombok.jadTestLombok.controller;
+package com.testApplication.controller;
 
-import com.jadTestLombok.jadTestLombok.dto.Course;
-import com.jadTestLombok.jadTestLombok.service.CourseService;
+import com.testApplication.dto.Course;
+import com.testApplication.service.CourseService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
