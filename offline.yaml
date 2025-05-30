@@ -1,0 +1,14 @@
+docker build -t nameofmycontainer .
+
+docker run -p 9090:8080 nameofmycontainer # exposed port set in the Dockerfile
+
+
+docker image ls
+
+#push to hub
+
+docker tag nameofmycontainer jadnasr/nameofmycontainer #"jadnasr" should match the username
+
+
+
+docker push jadnasr/nameofmycontainer

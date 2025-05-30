@@ -23,7 +23,7 @@ public class CourseController {
         courseService.addCourse(course);
         return new ResponseEntity<>(course, HttpStatus.CREATED);
     }
-
+/*
     @GetMapping(produces = "application/json")
     public ResponseEntity<List<Course>> getAllCourses() {
         List<Course> courses = courseService.getAllCourses();
@@ -67,6 +67,6 @@ public class CourseController {
     public String greetings() {
         return "Hello Techie , AWS CICD Example working fine !";
     }
-
+*/
 
 }
