@@ -1,7 +1,7 @@
 package com.testApplication.controller;
 
-import com.testApplication.dto.User;
-import com.testApplication.service.UserService;
+import com.testApplication.dto.UserLegacy;
+import com.testApplication.service.UserServiceLegacy;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -16,33 +16,33 @@ import java.util.Optional;
 public class UserController {
 
     @Autowired
-    private UserService userService;
+    private UserServiceLegacy userServiceLegacy;
 
 
     @PostMapping(produces = "application/json", consumes = "application/json")
-    public ResponseEntity<User> addUsers(@RequestBody User user) {
-        userService.addUser(user);
-        return new ResponseEntity<>(user, HttpStatus.CREATED);
+    public ResponseEntity<UserLegacy> addUsers(@RequestBody UserLegacy userLegacy) {
+        userServiceLegacy.addUser(userLegacy);
+        return new ResponseEntity<>(userLegacy, HttpStatus.CREATED);
     }
 
     @GetMapping(produces = "application/json")
-    public ResponseEntity<List<User>> getAllUsers() {
-        List<User> users = userService.getAllUsers();
-        return new ResponseEntity<>(users, HttpStatus.OK);
+    public ResponseEntity<List<UserLegacy>> getAllUsers() {
+        List<UserLegacy> userLegacies = userServiceLegacy.getAllUsers();
+        return new ResponseEntity<>(userLegacies, HttpStatus.OK);
     }
 
     @GetMapping(value = "/{id}", produces = "application/json")
-    public ResponseEntity<User> getUserById(@PathVariable int id) {
-        Optional<User> user = userService.getUserById(id);
+    public ResponseEntity<UserLegacy> getUserById(@PathVariable int id) {
+        Optional<UserLegacy> user = userServiceLegacy.getUserById(id);
         return user.map(value -> new ResponseEntity<>(value, HttpStatus.OK))
                 .orElseGet(() -> new ResponseEntity<>(HttpStatus.NOT_FOUND));
     }
 
     @PutMapping(value = "/{id}", produces = "application/json", consumes = "application/json")
-    public ResponseEntity<User> updateUser(@PathVariable int id, @RequestBody User newUser) {
-        boolean updated = userService.updateUser(id, newUser);
+    public ResponseEntity<UserLegacy> updateUser(@PathVariable int id, @RequestBody UserLegacy newUserLegacy) {
+        boolean updated = userServiceLegacy.updateUser(id, newUserLegacy);
         if (updated) {
-            return new ResponseEntity<>(newUser, HttpStatus.OK);
+            return new ResponseEntity<>(newUserLegacy, HttpStatus.OK);
         } else {
             return new ResponseEntity<>(HttpStatus.NOT_FOUND);
         }
@@ -50,7 +50,7 @@ public class UserController {
 
     @DeleteMapping(value = "/{id}", produces = "application/json")
     public ResponseEntity<Void> deleteUser(@PathVariable int id) {
-        boolean deleted = userService.deleteUser(id);
+        boolean deleted = userServiceLegacy.deleteUser(id);
         if (deleted) {
             return new ResponseEntity<>(HttpStatus.NO_CONTENT);
         } else {
