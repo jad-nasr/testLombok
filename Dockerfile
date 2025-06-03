@@ -8,3 +8,15 @@ COPY ./target/testApplication-service.jar /app
 EXPOSE 8080
 # Command to run the application
 CMD ["java", "-jar", "testApplication-service.jar"]
+
+
+# Start with a base image containing Java runtime
+#FROM java:8
+
+# Make port 8080 available to the world outside this container
+#EXPOSE 8080
+
+#ADD target/testApplication-service.jar testApplication-service.jar
+
+# Run the jar file
+#ENTRYPOINT ["java","-jar","testApplication-service.jar"]

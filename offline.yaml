@@ -1,6 +1,7 @@
 docker build -t nameofmycontainer .
 
-docker run -p 9090:8080 nameofmycontainer # exposed port set in the Dockerfile
+docker run -d -p 9090:8080 --name springbootapp nameofmycontainer # exposed port set in the Dockerfile
+
 
 
 docker image ls
