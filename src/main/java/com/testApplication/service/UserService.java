@@ -1,7 +1,6 @@
 package com.testApplication.service;
 
 import com.testApplication.dto.UserCreationRequestDTO;
-import com.testApplication.model.Role;    // Your Role JPA Entity
 import com.testApplication.model.User;    // Your User JPA Entity
 import com.testApplication.model.enums.RoleEnum; // Your RoleEnum
 import com.testApplication.repository.RoleRepository;
@@ -60,14 +59,14 @@ public class UserService implements UserDetailsService {
      * @throws IllegalArgumentException if a role name from DTO is not defined in RoleEnum
      * @throws RuntimeException if a role defined in RoleEnum is not found in the database (configuration error)
      */
-    private Set<Role> getRolesFromNames(Set<String> roleNamesFromDto) {
-        Set<Role> userRoles = new HashSet<>();
+    private Set<com.testApplication.model.Role> getRolesFromNames(Set<String> roleNamesFromDto) {
+        Set<com.testApplication.model.Role> userRoles = new HashSet<>();
 
         // Handle case where no roles are specified in DTO - assign a default or throw error
         if (roleNamesFromDto == null || roleNamesFromDto.isEmpty()) {
             // Option 1: Assign a default role
             System.out.println("No roles provided in DTO, assigning default role: " + RoleEnum.USER.getAuthority());
-            Role defaultRole = roleRepository.findByName(RoleEnum.USER.getAuthority())
+            com.testApplication.model.Role defaultRole = roleRepository.findByName(RoleEnum.USER.getAuthority())
                     .orElseThrow(() -> new RuntimeException("Configuration error: Default role " +
                             RoleEnum.USER.getAuthority() + " not found in DB. Ensure DataInitializer ran."));
             userRoles.add(defaultRole);
@@ -94,7 +93,7 @@ public class UserService implements UserDetailsService {
             String authorityName = roleEnumConstant.getAuthority();
 
             // Step 3: Fetch the Role entity from the database
-            Role role = roleRepository.findByName(authorityName)
+            com.testApplication.model.Role role = roleRepository.findByName(authorityName)
                     .orElseThrow(() -> new RuntimeException("Configuration error: Role '" + authorityName +
                             "' (defined in RoleEnum) was not found in the database. " +
                             "Please ensure the DataInitializer has run correctly."));
