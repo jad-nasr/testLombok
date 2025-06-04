@@ -11,5 +11,6 @@ import java.util.Optional;
 @Repository
 public interface AccountRepository extends JpaRepository<Account, Long> {
     Optional<Account> findByCodeAndLegalEntity(String code, LegalEntity legalEntity);
-    List<Account> findByLegalEntity(LegalEntity legalEntity);
+    List<Account> findByParentAccount(Account parentAccount);
+    List<Account> findByLegalEntity(LegalEntity legalEntity); // Added method
 }

@@ -2,6 +2,7 @@ package com.testApplication.model;
 
 import jakarta.persistence.*;
 import lombok.*;
+import java.time.Instant;
 
 @Data
 @NoArgsConstructor
@@ -27,6 +28,22 @@ public class Account {
 
     @Column(length = 500)
     private String description;
+
+    @Column(name = "created_at")
+    private Instant createdAt;
+
+    @Column(name = "updated_at")
+    private Instant updatedAt;
+    
+    @Column(name = "created_by", length = 100)
+    private String createdBy;
+    
+    @Column(name = "updated_by", length = 100)
+    private String updatedBy;
+
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "parent_account_id")
+    private Account parentAccount; // Self-referencing FK
 
     @Column(nullable = false)
     private boolean active = true;

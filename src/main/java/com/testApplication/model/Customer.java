@@ -1,0 +1,42 @@
+package com.testApplication.model;
+
+import jakarta.persistence.*;
+import lombok.*;
+import java.time.Instant;
+
+@Data
+@NoArgsConstructor
+@AllArgsConstructor
+@Builder
+@Entity
+@Table(name = "customers")
+public class Customer {
+    @Id
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    private Long id;
+
+    @Column(nullable = false, length = 255)
+    private String name;
+
+    @Column(nullable = false, length = 255)
+    private String email;
+
+    @Column(length = 50)
+    private String phone;
+
+    @Column(length = 500)
+    private String address;
+
+    @Column(nullable = false, length = 50)
+    private String type; // Customer, Vendor, Other
+
+    @Column(name = "created_at")
+    private Instant createdAt;
+
+    @Column(name = "updated_at")
+    private Instant updatedAt;
+
+    @ManyToOne(fetch = FetchType.LAZY, optional = false)
+    @JoinColumn(name = "legal_entity_id", nullable = false)
+    private LegalEntity legalEntity;
+}

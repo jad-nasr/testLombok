@@ -28,39 +28,71 @@ public class AccountService {
         this.legalEntityRepository = legalEntityRepository;
     }
 
-    public Account createAccount(Long legalEntityId, Long accountTypeId, Account account) {
+    public Account createAccount(Long legalEntityId, Long accountTypeId, Long parentAccountId, Account account) {
         LegalEntity legalEntity = legalEntityRepository.findById(legalEntityId)
                 .orElseThrow(() -> new RuntimeException("Legal entity not found with id: " + legalEntityId));
         AccountType accountType = accountTypeRepository.findById(accountTypeId)
                 .orElseThrow(() -> new RuntimeException("Account type not found with id: " + accountTypeId));
         account.setLegalEntity(legalEntity);
         account.setAccountType(accountType);
-        return accountRepository.save(account);
-    }
 
-    public List<Account> getAccountsForLegalEntity(Long legalEntityId) {
-        LegalEntity legalEntity = legalEntityRepository.findById(legalEntityId)
-                .orElseThrow(() -> new RuntimeException("Legal entity not found with id: " + legalEntityId));
-        return accountRepository.findByLegalEntity(legalEntity);
+        if (parentAccountId != null) {
+            Account parentAccount = accountRepository.findById(parentAccountId)
+                    .orElseThrow(() -> new RuntimeException("Parent account not found with id: " + parentAccountId));
+            account.setParentAccount(parentAccount);
+        } else {
+            account.setParentAccount(null);
+        }
+
+        return accountRepository.save(account);
     }
 
     public Optional<Account> getAccountById(Long id) {
         return accountRepository.findById(id);
     }
 
-    public Account updateAccount(Long id, Account updated, Long accountTypeId) {
+    public List<Account> getAllAccounts() {
+        return accountRepository.findAll();
+    }
+
+    public List<Account> getAccountsByLegalEntity(Long legalEntityId) {
+        LegalEntity legalEntity = legalEntityRepository.findById(legalEntityId)
+                .orElseThrow(() -> new RuntimeException("Legal entity not found with id: " + legalEntityId));
+        return accountRepository.findByLegalEntity(legalEntity);
+    }
+
+    public List<Account> getAccountsByParentAccount(Long parentAccountId) {
+        Account parentAccount = accountRepository.findById(parentAccountId)
+                .orElseThrow(() -> new RuntimeException("Parent account not found with id: " + parentAccountId));
+        return accountRepository.findByParentAccount(parentAccount);
+    }
+
+    public Account updateAccount(Long id, Account updated, Long accountTypeId, Long parentAccountId) {
         Account account = accountRepository.findById(id)
                 .orElseThrow(() -> new RuntimeException("Account not found with id: " + id));
-        account.setName(updated.getName());
         account.setCode(updated.getCode());
+        account.setName(updated.getName());
         account.setDescription(updated.getDescription());
+        account.setCreatedAt(updated.getCreatedAt());
+        account.setUpdatedAt(updated.getUpdatedAt());
+        account.setCreatedBy(updated.getCreatedBy());
+        account.setUpdatedBy(updated.getUpdatedBy());
         account.setActive(updated.isActive());
+
         if (accountTypeId != null) {
             AccountType accountType = accountTypeRepository.findById(accountTypeId)
                     .orElseThrow(() -> new RuntimeException("Account type not found with id: " + accountTypeId));
             account.setAccountType(accountType);
         }
-        // Changing legal entity is not allowed here; add a method if you want to enable that
+
+        if (parentAccountId != null) {
+            Account parentAccount = accountRepository.findById(parentAccountId)
+                    .orElseThrow(() -> new RuntimeException("Parent account not found with id: " + parentAccountId));
+            account.setParentAccount(parentAccount);
+        } else {
+            account.setParentAccount(null);
+        }
+
         return accountRepository.save(account);
     }
 
