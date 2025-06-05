@@ -62,12 +62,10 @@ class CsvImportServiceTest {
         testLegalEntity = LegalEntity.builder()
             .id(1L)
             .name("Test Entity")
-            .build();
-
-        testAccountType = AccountType.builder()
+            .build();        testAccountType = AccountType.builder()
             .id(1L)
-            .code("ASSET")
-            .name("Asset Account")
+            .code("CURRENT_ASSET")
+            .name("Current Asset")
             .build();
 
         testAccount = Account.builder()
@@ -202,7 +200,7 @@ class CsvImportServiceTest {
         when(legalEntityRepository.findById(1L)).thenReturn(Optional.of(testLegalEntity));
         when(accountRepository.findByCodeAndLegalEntityId(eq("NEW_ACC001"), anyLong()))
             .thenReturn(Optional.empty());
-        when(accountTypeRepository.findByCode("ASSET")).thenReturn(Optional.of(testAccountType));
+        when(accountTypeRepository.findByCode("CURRENT_ASSET")).thenReturn(Optional.of(testAccountType));
         when(accountRepository.save(any())).thenReturn(newAccount);
         when(transactionRepository.findByTransactionCodeAndLegalEntityId(anyString(), anyLong()))
             .thenReturn(Optional.empty());
@@ -219,7 +217,7 @@ class CsvImportServiceTest {
         
         // Verify account creation behavior
         verify(accountRepository, times(1)).findByCodeAndLegalEntityId(eq("NEW_ACC001"), anyLong());
-        verify(accountTypeRepository, times(1)).findByCode("ASSET");
+        verify(accountTypeRepository, times(1)).findByCode("CURRENT_ASSET");
         verify(accountRepository, times(1)).save(argThat(account -> 
             account.getCode().equals("NEW_ACC001") &&
             account.getName().equals("Imported: NEW_ACC001") &&
@@ -234,14 +232,13 @@ class CsvImportServiceTest {
         // Arrange
         when(legalEntityRepository.findById(1L)).thenReturn(Optional.of(testLegalEntity));
         when(accountRepository.findByCodeAndLegalEntityId(anyString(), anyLong()))
-            .thenReturn(Optional.empty());
-        when(accountTypeRepository.findByCode("ASSET")).thenReturn(Optional.empty());
+            .thenReturn(Optional.empty());        when(accountTypeRepository.findByCode("CURRENT_ASSET")).thenReturn(Optional.empty());
 
         // Act & Assert
         Exception exception = assertThrows(RuntimeException.class, () ->
             csvImportService.importTransactionLinesFromCsv(testFile, 1L)
         );
-        assertTrue(exception.getMessage().contains("Default ASSET account type not found"));
+        assertTrue(exception.getMessage().contains("Default CURRENT_ASSET account type not found"));
     }
 
     @Test

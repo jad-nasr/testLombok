@@ -123,10 +123,10 @@ public class CsvImportService {
     }
 
     private Account createNewAccount(String accountCode, LegalEntity legalEntity) {
-        // Default to ASSET type for imported accounts
-        AccountType assetType = accountTypeRepository.findByCode("ASSET")
+        // Default to CURRENT_ASSET type for imported accounts
+        AccountType assetType = accountTypeRepository.findByCode("CURRENT_ASSET")
                 .orElseThrow(() -> new RuntimeException(
-                        "Default ASSET account type not found. Please ensure DataInitializer ran."));
+                        "Default CURRENT_ASSET account type not found. Please ensure DataInitializer ran."));
 
         Instant now = Instant.now();
 
