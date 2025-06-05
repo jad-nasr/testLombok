@@ -1,6 +1,7 @@
 package com.testApplication.model;
 
 import jakarta.persistence.*;
+import jakarta.validation.constraints.NotNull;
 import lombok.*;
 import java.math.BigDecimal;
 import java.time.Instant;
@@ -23,10 +24,10 @@ public class Transaction {
     @Column(nullable = false)
     private Instant date;
 
-    @Column(nullable = false, precision = 19, scale = 4)
+    @Column(precision = 19, scale = 4, nullable = false)
     private BigDecimal amount;
 
-    @Column(nullable = false, length = 10)
+    @Column(length = 10, nullable = false)
     private String currency;
 
     @Column(length = 500)
@@ -35,7 +36,7 @@ public class Transaction {
     @Column(name = "approval_status", nullable = false, length = 50)
     private String approvalStatus; // Pending, Approved, Rejected
 
-    @Column(name = "created_at")
+    @Column(name = "created_at", nullable = false)
     private Instant createdAt;
 
     @Column(name = "updated_at")
@@ -45,10 +46,14 @@ public class Transaction {
     @JoinColumn(name = "customer_id")
     private Customer customer;
 
+    @NotNull
     @ManyToOne(fetch = FetchType.LAZY, optional = false)
     @JoinColumn(name = "legal_entity_id", nullable = false)
     private LegalEntity legalEntity;
 
-    @Column(name = "created_by", length = 100)
+    @Column(name = "created_by", length = 100, nullable = false)
     private String createdBy;
+
+    @Column(name = "transaction_code", nullable = false)
+    private String transactionCode;
 }

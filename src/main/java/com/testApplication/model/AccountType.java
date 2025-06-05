@@ -26,6 +26,7 @@ public class AccountType {
 
     public AccountType(String code) {
         this.code = code;
-        this.name = code;
+        // Convert UPPER_CASE to Title Case for name
+        this.name = code.charAt(0) + code.substring(1).toLowerCase();
     }
 }

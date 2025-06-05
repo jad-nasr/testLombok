@@ -1,8 +1,8 @@
 package com.testApplication.controller;
 
-import com.testApplication.model.Account;
+import com.testApplication.dto.AccountDTO;
+import com.testApplication.mapper.AccountMapper;
 import com.testApplication.service.AccountService;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -13,54 +13,67 @@ import java.util.List;
 @RequestMapping("/api/accounts")
 public class AccountController {
 
-    @Autowired
-    private AccountService accountService;
+    private final AccountService accountService;
+    private final AccountMapper accountMapper;
+
+    public AccountController(AccountService accountService, AccountMapper accountMapper) {
+        this.accountService = accountService;
+        this.accountMapper = accountMapper;
+    }
 
     @GetMapping
-    public List<Account> getAllAccounts() {
-        return accountService.getAllAccounts();
+    public List<AccountDTO> getAllAccounts() {
+        return accountMapper.toDTOList(accountService.getAllAccounts());
     }
 
     @GetMapping("/{id}")
-    public ResponseEntity<Account> getAccountById(@PathVariable Long id) {
+    public ResponseEntity<AccountDTO> getAccountById(@PathVariable Long id) {
         return accountService.getAccountById(id)
+                .map(accountMapper::toDTO)
                 .map(ResponseEntity::ok)
                 .orElse(ResponseEntity.notFound().build());
     }
 
     @GetMapping("/by-legal-entity/{legalEntityId}")
-    public List<Account> getAccountsByLegalEntity(@PathVariable Long legalEntityId) {
-        return accountService.getAccountsByLegalEntity(legalEntityId);
+    public List<AccountDTO> getAccountsByLegalEntity(@PathVariable Long legalEntityId) {
+        return accountMapper.toDTOList(accountService.getAccountsByLegalEntity(legalEntityId));
     }
 
     @GetMapping("/by-parent/{parentAccountId}")
-    public List<Account> getAccountsByParentAccount(@PathVariable Long parentAccountId) {
-        return accountService.getAccountsByParentAccount(parentAccountId);
+    public List<AccountDTO> getAccountsByParentAccount(@PathVariable Long parentAccountId) {
+        return accountMapper.toDTOList(accountService.getAccountsByParentAccount(parentAccountId));
     }
 
     @PostMapping
-    public ResponseEntity<Account> createAccount(
-            @RequestBody Account account,
+    public ResponseEntity<AccountDTO> createAccount(
+            @RequestBody AccountDTO accountDTO,
             @RequestParam Long legalEntityId,
             @RequestParam Long accountTypeId,
             @RequestParam(required = false) Long parentAccountId) {
         try {
-            Account created = accountService.createAccount(legalEntityId, accountTypeId, parentAccountId, account);
-            return new ResponseEntity<>(created, HttpStatus.CREATED);
+            return new ResponseEntity<>(
+                accountMapper.toDTO(
+                    accountService.createAccount(legalEntityId, accountTypeId, parentAccountId, accountMapper.toEntity(accountDTO))
+                ),
+                HttpStatus.CREATED
+            );
         } catch (RuntimeException e) {
             return ResponseEntity.badRequest().build();
         }
     }
 
     @PutMapping("/{id}")
-    public ResponseEntity<Account> updateAccount(
+    public ResponseEntity<AccountDTO> updateAccount(
             @PathVariable Long id,
-            @RequestBody Account account,
+            @RequestBody AccountDTO accountDTO,
             @RequestParam(required = false) Long accountTypeId,
             @RequestParam(required = false) Long parentAccountId) {
         try {
-            Account updated = accountService.updateAccount(id, account, accountTypeId, parentAccountId);
-            return ResponseEntity.ok(updated);
+            return ResponseEntity.ok(
+                accountMapper.toDTO(
+                    accountService.updateAccount(id, accountMapper.toEntity(accountDTO), accountTypeId, parentAccountId)
+                )
+            );
         } catch (RuntimeException e) {
             return ResponseEntity.notFound().build();
         }

@@ -1,8 +1,7 @@
 package com.testApplication.controller;
 
-import com.testApplication.model.Customer;
+import com.testApplication.dto.CustomerDTO;
 import com.testApplication.service.CustomerService;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -13,38 +12,47 @@ import java.util.List;
 @RequestMapping("/api/customers")
 public class CustomerController {
 
-    @Autowired
-    private CustomerService customerService;
+    private final CustomerService customerService;
 
-    @GetMapping
-    public List<Customer> getAllCustomers() {
-        return customerService.getAllCustomers();
+    public CustomerController(CustomerService customerService) {
+        this.customerService = customerService;
+    }
+
+    @PostMapping
+    public ResponseEntity<CustomerDTO> createCustomer(
+            @RequestBody CustomerDTO customerDTO,
+            @RequestParam Long legalEntityId) {
+        return new ResponseEntity<>(
+            customerService.createCustomer(customerDTO, legalEntityId),
+            HttpStatus.CREATED
+        );
     }
 
     @GetMapping("/{id}")
-    public ResponseEntity<Customer> getCustomerById(@PathVariable Long id) {
+    public ResponseEntity<CustomerDTO> getCustomerById(@PathVariable Long id) {
         return customerService.getCustomerById(id)
                 .map(ResponseEntity::ok)
                 .orElse(ResponseEntity.notFound().build());
     }
 
-    @PostMapping
-    public ResponseEntity<Customer> createCustomer(@RequestBody Customer customer) {
-        try {
-            Customer created = customerService.createCustomer(customer);
-            return new ResponseEntity<>(created, HttpStatus.CREATED);
-        } catch (RuntimeException e) {
-            return ResponseEntity.badRequest().build();
-        }
+    @GetMapping
+    public List<CustomerDTO> getAllCustomers() {
+        return customerService.getAllCustomers();
+    }
+
+    @GetMapping("/by-legal-entity/{legalEntityId}")
+    public List<CustomerDTO> getCustomersByLegalEntity(@PathVariable Long legalEntityId) {
+        return customerService.getCustomersByLegalEntity(legalEntityId);
     }
 
     @PutMapping("/{id}")
-    public ResponseEntity<Customer> updateCustomer(
+    public ResponseEntity<CustomerDTO> updateCustomer(
             @PathVariable Long id,
-            @RequestBody Customer customer) {
+            @RequestBody CustomerDTO customerDTO,
+            @RequestParam(required = false) Long legalEntityId) {
         try {
-            Customer updated = customerService.updateCustomer(id, customer);
-            return ResponseEntity.ok(updated);
+            CustomerDTO updatedCustomer = customerService.updateCustomer(id, customerDTO, legalEntityId);
+            return ResponseEntity.ok(updatedCustomer);
         } catch (RuntimeException e) {
             return ResponseEntity.notFound().build();
         }

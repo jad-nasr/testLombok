@@ -8,6 +8,7 @@ import java.time.Instant;
 @NoArgsConstructor
 @AllArgsConstructor
 @Builder
+@ToString(exclude = {"accountType", "parentAccount", "legalEntity"})
 @Entity
 @Table(name = "accounts")
 public class Account {
@@ -46,6 +47,7 @@ public class Account {
     private Account parentAccount; // Self-referencing FK
 
     @Column(nullable = false)
+    @Builder.Default
     private boolean active = true;
 
     @ManyToOne(fetch = FetchType.LAZY, optional = false)

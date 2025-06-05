@@ -6,20 +6,20 @@ import com.testApplication.model.LegalEntity;
 import com.testApplication.repository.AccountRepository;
 import com.testApplication.repository.AccountTypeRepository;
 import com.testApplication.repository.LegalEntityRepository;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
 import java.util.Optional;
 
 @Service
+@Transactional
 public class AccountService {
 
     private final AccountRepository accountRepository;
     private final AccountTypeRepository accountTypeRepository;
     private final LegalEntityRepository legalEntityRepository;
 
-    @Autowired
     public AccountService(AccountRepository accountRepository,
                           AccountTypeRepository accountTypeRepository,
                           LegalEntityRepository legalEntityRepository) {
@@ -47,20 +47,24 @@ public class AccountService {
         return accountRepository.save(account);
     }
 
+    @Transactional(readOnly = true)
     public Optional<Account> getAccountById(Long id) {
         return accountRepository.findById(id);
     }
 
+    @Transactional(readOnly = true)
     public List<Account> getAllAccounts() {
         return accountRepository.findAll();
     }
 
+    @Transactional(readOnly = true)
     public List<Account> getAccountsByLegalEntity(Long legalEntityId) {
         LegalEntity legalEntity = legalEntityRepository.findById(legalEntityId)
                 .orElseThrow(() -> new RuntimeException("Legal entity not found with id: " + legalEntityId));
         return accountRepository.findByLegalEntity(legalEntity);
     }
 
+    @Transactional(readOnly = true)
     public List<Account> getAccountsByParentAccount(Long parentAccountId) {
         Account parentAccount = accountRepository.findById(parentAccountId)
                 .orElseThrow(() -> new RuntimeException("Parent account not found with id: " + parentAccountId));
@@ -70,6 +74,7 @@ public class AccountService {
     public Account updateAccount(Long id, Account updated, Long accountTypeId, Long parentAccountId) {
         Account account = accountRepository.findById(id)
                 .orElseThrow(() -> new RuntimeException("Account not found with id: " + id));
+
         account.setCode(updated.getCode());
         account.setName(updated.getName());
         account.setDescription(updated.getDescription());

@@ -7,6 +7,8 @@ import lombok.*;
 @NoArgsConstructor
 @AllArgsConstructor
 @Builder
+@EqualsAndHashCode(exclude = "legalEntityType")
+@ToString(exclude = "legalEntityType")
 @Entity
 @Table(name = "legal_entities")
 public class LegalEntity {
@@ -18,7 +20,7 @@ public class LegalEntity {
     @Column(nullable = false, unique = true, length = 255)
     private String name;
 
-    @ManyToOne(fetch = FetchType.LAZY, optional = false)
+    @ManyToOne(fetch = FetchType.EAGER)
     @JoinColumn(name = "legal_entity_type_id", nullable = false)
     private LegalEntityType legalEntityType;
 
@@ -39,4 +41,7 @@ public class LegalEntity {
 
     @Column(length = 100)
     private String email;
+
+    @Column(nullable = false)
+    private String type;
 }

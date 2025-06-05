@@ -4,36 +4,44 @@ import com.testApplication.model.LegalEntity;
 import com.testApplication.model.LegalEntityType;
 import com.testApplication.repository.LegalEntityRepository;
 import com.testApplication.repository.LegalEntityTypeRepository;
-import org.springframework.beans.factory.annotation.Autowired;
+import com.testApplication.dto.LegalEntityDTO;
+import com.testApplication.mapper.LegalEntityMapper;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
 import java.util.Optional;
 
 @Service
+@Transactional
 public class LegalEntityService {
 
     private final LegalEntityRepository legalEntityRepository;
     private final LegalEntityTypeRepository legalEntityTypeRepository;
+    private final LegalEntityMapper legalEntityMapper;
 
-    @Autowired
     public LegalEntityService(LegalEntityRepository legalEntityRepository,
-                              LegalEntityTypeRepository legalEntityTypeRepository) {
+                          LegalEntityTypeRepository legalEntityTypeRepository,
+                          LegalEntityMapper legalEntityMapper) {
         this.legalEntityRepository = legalEntityRepository;
         this.legalEntityTypeRepository = legalEntityTypeRepository;
+        this.legalEntityMapper = legalEntityMapper;
     }
 
     public LegalEntity createLegalEntity(Long legalEntityTypeId, LegalEntity legalEntity) {
-        LegalEntityType type = legalEntityTypeRepository.findById(legalEntityTypeId)
+        LegalEntityType legalEntityType = legalEntityTypeRepository.findById(legalEntityTypeId)
                 .orElseThrow(() -> new RuntimeException("Legal entity type not found with id: " + legalEntityTypeId));
-        legalEntity.setLegalEntityType(type);
+        legalEntity.setLegalEntityType(legalEntityType);
+        legalEntity.setType(legalEntityType.getCode());
         return legalEntityRepository.save(legalEntity);
     }
 
+    @Transactional(readOnly = true)
     public List<LegalEntity> getAllLegalEntities() {
         return legalEntityRepository.findAll();
     }
 
+    @Transactional(readOnly = true)
     public Optional<LegalEntity> getLegalEntityById(Long id) {
         return legalEntityRepository.findById(id);
     }
@@ -41,6 +49,7 @@ public class LegalEntityService {
     public LegalEntity updateLegalEntity(Long id, LegalEntity updated, Long legalEntityTypeId) {
         LegalEntity entity = legalEntityRepository.findById(id)
                 .orElseThrow(() -> new RuntimeException("Legal entity not found with id: " + id));
+        
         entity.setName(updated.getName());
         entity.setRegistrationNumber(updated.getRegistrationNumber());
         entity.setAddress(updated.getAddress());
@@ -48,11 +57,14 @@ public class LegalEntityService {
         entity.setContactPerson(updated.getContactPerson());
         entity.setPhone(updated.getPhone());
         entity.setEmail(updated.getEmail());
+        
         if (legalEntityTypeId != null) {
             LegalEntityType type = legalEntityTypeRepository.findById(legalEntityTypeId)
                     .orElseThrow(() -> new RuntimeException("Legal entity type not found with id: " + legalEntityTypeId));
             entity.setLegalEntityType(type);
+            entity.setType(type.getCode());
         }
+        
         return legalEntityRepository.save(entity);
     }
 

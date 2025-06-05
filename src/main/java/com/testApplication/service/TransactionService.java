@@ -1,84 +1,119 @@
 package com.testApplication.service;
 
+import com.testApplication.dto.TransactionDTO;
 import com.testApplication.model.Transaction;
 import com.testApplication.model.Customer;
 import com.testApplication.model.LegalEntity;
 import com.testApplication.repository.TransactionRepository;
 import com.testApplication.repository.CustomerRepository;
 import com.testApplication.repository.LegalEntityRepository;
+import com.testApplication.mapper.TransactionMapper;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
 import java.util.Optional;
 
 @Service
 public class TransactionService {
-
     private final TransactionRepository transactionRepository;
     private final CustomerRepository customerRepository;
     private final LegalEntityRepository legalEntityRepository;
+    private final TransactionMapper transactionMapper;
 
     @Autowired
-    public TransactionService(TransactionRepository transactionRepository,
-                             CustomerRepository customerRepository,
-                             LegalEntityRepository legalEntityRepository) {
+    public TransactionService(
+            TransactionRepository transactionRepository,
+            CustomerRepository customerRepository,
+            LegalEntityRepository legalEntityRepository,
+            TransactionMapper transactionMapper) {
         this.transactionRepository = transactionRepository;
         this.customerRepository = customerRepository;
         this.legalEntityRepository = legalEntityRepository;
+        this.transactionMapper = transactionMapper;
     }
 
-    public Transaction createTransaction(Transaction transaction, Long customerId, Long legalEntityId) {
-        if (customerId != null) {
-            Customer customer = customerRepository.findById(customerId)
-                    .orElseThrow(() -> new RuntimeException("Customer not found with id: " + customerId));
-            transaction.setCustomer(customer);
-        }
-        if (legalEntityId != null) {
-            LegalEntity legalEntity = legalEntityRepository.findById(legalEntityId)
-                    .orElseThrow(() -> new RuntimeException("Legal entity not found with id: " + legalEntityId));
-            transaction.setLegalEntity(legalEntity);
-        }
-        return transactionRepository.save(transaction);
+    public List<TransactionDTO> getAllTransactions() {
+        return transactionMapper.toDTOList(transactionRepository.findAll());
     }
 
-    public Optional<Transaction> getTransactionById(Long id) {
-        return transactionRepository.findById(id);
+    public Optional<TransactionDTO> getTransactionById(Long id) {
+        return transactionRepository.findById(id)
+                .map(transactionMapper::toDTO);
     }
 
-    public List<Transaction> getAllTransactions() {
-        return transactionRepository.findAll();
+    public Optional<TransactionDTO> findByTransactionCodeAndLegalEntity(String transactionCode, Long legalEntityId) {
+        return transactionRepository.findByTransactionCodeAndLegalEntityId(transactionCode, legalEntityId)
+                .map(transactionMapper::toDTO);
     }
 
-    public List<Transaction> getTransactionsByCustomer(Long customerId) {
+    @Transactional
+    public TransactionDTO createTransaction(TransactionDTO dto, Long customerId) {
         Customer customer = customerRepository.findById(customerId)
-                .orElseThrow(() -> new RuntimeException("Customer not found with id: " + customerId));
-        return transactionRepository.findByCustomer(customer);
+                .orElseThrow(() -> new RuntimeException("Customer not found"));
+                
+        LegalEntity legalEntity = legalEntityRepository.findById(dto.getLegalEntityId())
+                .orElseThrow(() -> new RuntimeException("Legal Entity not found"));
+
+        // Check if transaction already exists
+        Optional<Transaction> existingTransaction = transactionRepository
+                .findByTransactionCodeAndLegalEntityId(dto.getTransactionCode(), dto.getLegalEntityId());
+        
+        if (existingTransaction.isPresent()) {
+            throw new RuntimeException("Transaction already exists for this legal entity");
+        }
+
+        Transaction transaction = Transaction.builder()
+                .transactionCode(dto.getTransactionCode())
+                .transactionType(dto.getTransactionType())
+                .date(dto.getDate())
+                .description(dto.getDescription())
+                .approvalStatus(dto.getApprovalStatus())
+                .amount(dto.getAmount())
+                .currency(dto.getCurrency())
+                .customer(customer)
+                .legalEntity(legalEntity)
+                .build();
+
+        Transaction saved = transactionRepository.save(transaction);
+        return transactionMapper.toDTO(saved);
     }
 
-    public List<Transaction> getTransactionsByLegalEntity(Long legalEntityId) {
-        LegalEntity legalEntity = legalEntityRepository.findById(legalEntityId)
-                .orElseThrow(() -> new RuntimeException("Legal entity not found with id: " + legalEntityId));
-        return transactionRepository.findByLegalEntity(legalEntity);
+    @Transactional
+    public TransactionDTO updateTransaction(Long id, TransactionDTO dto) {
+        Transaction existing = transactionRepository.findById(id)
+                .orElseThrow(() -> new RuntimeException("Transaction not found"));
+
+        existing.setTransactionCode(dto.getTransactionCode());
+        existing.setTransactionType(dto.getTransactionType());
+        existing.setDate(dto.getDate());
+        existing.setDescription(dto.getDescription());
+        existing.setApprovalStatus(dto.getApprovalStatus());
+        existing.setAmount(dto.getAmount());
+        existing.setCurrency(dto.getCurrency());
+
+        Transaction updated = transactionRepository.save(existing);
+        return transactionMapper.toDTO(updated);
     }
 
-    public Transaction updateTransaction(Long id, Transaction updated) {
-        Transaction transaction = transactionRepository.findById(id)
-                .orElseThrow(() -> new RuntimeException("Transaction not found with id: " + id));
-        transaction.setTransactionType(updated.getTransactionType());
-        transaction.setDate(updated.getDate());
-        transaction.setAmount(updated.getAmount());
-        transaction.setCurrency(updated.getCurrency());
-        transaction.setDescription(updated.getDescription());
-        transaction.setApprovalStatus(updated.getApprovalStatus());
-        transaction.setCreatedAt(updated.getCreatedAt());
-        transaction.setUpdatedAt(updated.getUpdatedAt());
-        transaction.setCreatedBy(updated.getCreatedBy());
-        // Optionally update customer and legalEntity if needed
-        return transactionRepository.save(transaction);
-    }
-
+    @Transactional
     public void deleteTransaction(Long id) {
+        if (!transactionRepository.existsById(id)) {
+            throw new RuntimeException("Transaction not found");
+        }
         transactionRepository.deleteById(id);
+    }
+
+    public List<TransactionDTO> getTransactionsByCustomer(Long customerId) {
+        Customer customer = customerRepository.findById(customerId)
+                .orElseThrow(() -> new RuntimeException("Customer not found"));
+        return transactionMapper.toDTOList(transactionRepository.findByCustomer(customer));
+    }
+
+    public List<TransactionDTO> getTransactionsByLegalEntity(Long legalEntityId) {
+        LegalEntity legalEntity = legalEntityRepository.findById(legalEntityId)
+                .orElseThrow(() -> new RuntimeException("Legal Entity not found"));
+        return transactionMapper.toDTOList(transactionRepository.findByLegalEntity(legalEntity));
     }
 }

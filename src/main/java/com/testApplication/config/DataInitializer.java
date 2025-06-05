@@ -61,19 +61,4 @@ public class DataInitializer {
             System.out.println("Legal entity types initialized.");
         };
     }
-    /*
-    @Bean
-    CommandLineRunner initAccountTypes(AccountTypeRepository accountTypeRepository) {
-        return args -> {
-            System.out.println("Initializing roles...");
-            for (AccountTypeEnum accountTypeEnum : AccountTypeEnum.values()) {
-                if (accountTypeRepository.findByCode(accountTypeEnum.getAccountCode()).isEmpty()) {
-                    accountTypeRepository.save(new com.testApplication.model.AccountType(accountTypeEnum.getAccountCode()));
-                    System.out.println("Created role: " + accountTypeEnum);
-                }
-            }
-            System.out.println("Roles initialized.");
-        };
-    }
-    */
 }
