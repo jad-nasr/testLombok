@@ -15,11 +15,13 @@ public class AccountTypeMapper {
             return null;
         }
 
-        return AccountTypeDTO.builder()
-                .id(entity.getId())
+        return AccountTypeDTO.builder()                .id(entity.getId())
                 .code(entity.getCode())
                 .name(entity.getName())
                 .description(entity.getDescription())
+                .accountCategoryId(entity.getAccountCategory() != null ? entity.getAccountCategory().getId() : null)
+                .accountCategoryCode(entity.getAccountCategory() != null ? entity.getAccountCategory().getCode() : null)
+                .accountCategoryName(entity.getAccountCategory() != null ? entity.getAccountCategory().getName() : null)
                 .build();
     }
 
@@ -30,18 +32,17 @@ public class AccountTypeMapper {
         return entities.stream()
                 .map(this::toDTO)
                 .collect(Collectors.toList());
-    }
-
-    public AccountType toEntity(AccountTypeDTO dto) {
+    }    public AccountType toEntity(AccountTypeDTO dto) {
         if (dto == null) {
             return null;
         }
 
-        return AccountType.builder()
-                .id(dto.getId())
-                .code(dto.getCode())
-                .name(dto.getName())
-                .description(dto.getDescription())
-                .build();
+        AccountType entity = new AccountType();
+        entity.setId(dto.getId());
+        entity.setCode(dto.getCode());
+        entity.setName(dto.getName());
+        entity.setDescription(dto.getDescription());
+        // Note: AccountCategory will be set by the service
+        return entity;
     }
 }

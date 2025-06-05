@@ -14,4 +14,5 @@ public interface AccountRepository extends JpaRepository<Account, Long> {
     List<Account> findByParentAccount(Account parentAccount);
     List<Account> findByLegalEntity(LegalEntity legalEntity); // Added method
     Optional<Account> findByCodeAndLegalEntityId(String code, Long legalEntityId);
+    boolean existsByCodeAndLegalEntityId(String code, Long legalEntityId);
 }

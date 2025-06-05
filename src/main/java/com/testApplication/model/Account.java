@@ -10,21 +10,24 @@ import java.time.Instant;
 @Builder
 @ToString(exclude = {"accountType", "parentAccount", "legalEntity"})
 @Entity
-@Table(name = "accounts")
+@Table(name = "accounts", uniqueConstraints = {
+    @UniqueConstraint(columnNames = {"code", "legal_entity_id"}),
+    @UniqueConstraint(columnNames = {"name", "legal_entity_id"})
+})
 public class Account {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    @Column(nullable = false, unique = true, length = 100)
+    @Column(nullable = false, length = 100)
     private String code;
 
     @Column(nullable = false, length = 255)
     private String name;
 
-    @ManyToOne(fetch = FetchType.LAZY, optional = false)
-    @JoinColumn(name = "account_type_id", nullable = false)
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "account_type_id")
     private AccountType accountType;
 
     @Column(length = 500)
@@ -47,7 +50,6 @@ public class Account {
     private Account parentAccount; // Self-referencing FK
 
     @Column(nullable = false)
-    @Builder.Default
     private boolean active = true;
 
     @ManyToOne(fetch = FetchType.LAZY, optional = false)

@@ -13,5 +13,7 @@ public class AccountTypeDTO {
     private Long id;
     private String code;
     private String name;
-    private String description;
+    private String description;    private Long accountCategoryId;
+    private String accountCategoryCode;
+    private String accountCategoryName;
 }

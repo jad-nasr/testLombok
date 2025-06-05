@@ -24,6 +24,10 @@ public class AccountType {
     @Column(length = 500)
     private String description;
 
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "account_category_id")
+    private AccountCategory accountCategory;
+
     public AccountType(String code) {
         this.code = code;
         // Convert UPPER_CASE to Title Case for name

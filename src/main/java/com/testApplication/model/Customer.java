@@ -9,7 +9,10 @@ import java.time.Instant;
 @AllArgsConstructor
 @Builder
 @Entity
-@Table(name = "customers")
+@Table(name = "customers", uniqueConstraints = {
+    @UniqueConstraint(columnNames = {"email", "legal_entity_id"}, name = "uk_customer_email_legal_entity"),
+    @UniqueConstraint(columnNames = {"phone", "legal_entity_id"}, name = "uk_customer_phone_legal_entity")
+})
 public class Customer {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
