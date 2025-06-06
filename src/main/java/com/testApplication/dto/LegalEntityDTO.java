@@ -5,6 +5,9 @@ import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
+import java.util.ArrayList;
+import java.util.List;
+
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
@@ -21,4 +24,6 @@ public class LegalEntityDTO {
     private String phone;
     private String email;
     private String type;
+    @Builder.Default
+    private List<UserEntityAccessDTO> users = new ArrayList<>();
 }

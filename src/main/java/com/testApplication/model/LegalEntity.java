@@ -3,13 +3,15 @@ package com.testApplication.model;
 import jakarta.persistence.*;
 import lombok.*;
 import java.time.Instant;
+import java.util.HashSet;
+import java.util.Set;
 
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
 @Builder
-@EqualsAndHashCode(exclude = "legalEntityType")
-@ToString(exclude = "legalEntityType")
+@EqualsAndHashCode(exclude = {"legalEntityType", "userAccesses"})
+@ToString(exclude = {"legalEntityType", "userAccesses"})
 @Entity
 @Table(name = "legal_entities")
 public class LegalEntity {
@@ -57,4 +59,9 @@ public class LegalEntity {
     
     @Column(name = "updated_by", length = 100)
     private String updatedBy;
+
+    @OneToMany(mappedBy = "legalEntity")
+    @Builder.Default
+    private Set<UserEntityAccess> userAccesses = new HashSet<>();
+
 }

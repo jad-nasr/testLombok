@@ -1,10 +1,13 @@
 package com.testApplication.mapper;
 
 import com.testApplication.dto.LegalEntityDTO;
+import com.testApplication.dto.UserEntityAccessDTO;
 import com.testApplication.model.LegalEntity;
 import com.testApplication.model.LegalEntityType;
+import com.testApplication.model.UserEntityAccess;
 import org.springframework.stereotype.Component;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -15,6 +18,10 @@ public class LegalEntityMapper {
         if (entity == null) {
             return null;
         }
+
+        List<UserEntityAccessDTO> userDTOs = entity.getUserAccesses().stream()
+            .map(this::toUserAccessDTO)
+            .collect(Collectors.toList());
 
         return LegalEntityDTO.builder()
                 .id(entity.getId())
@@ -28,6 +35,22 @@ public class LegalEntityMapper {
                 .phone(entity.getPhone())
                 .email(entity.getEmail())
                 .type(entity.getType())
+                .users(userDTOs)
+                .build();
+    }
+
+    private UserEntityAccessDTO toUserAccessDTO(UserEntityAccess entity) {
+        return UserEntityAccessDTO.builder()
+                .id(entity.getId())
+                .userId(entity.getUser().getId())
+                .username(entity.getUser().getUsername())
+                .legalEntityId(entity.getLegalEntity().getId())
+                .legalEntityName(entity.getLegalEntity().getName())
+                .active(entity.isActive())
+                .grantedAt(entity.getGrantedAt())
+                .grantedBy(entity.getGrantedBy())
+                .revokedAt(entity.getRevokedAt())
+                .revokedBy(entity.getRevokedBy())
                 .build();
     }
 
