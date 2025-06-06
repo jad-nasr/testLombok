@@ -8,13 +8,13 @@ import java.time.Instant;
 @NoArgsConstructor
 @AllArgsConstructor
 @Builder
-@ToString(exclude = {"accountType", "parentAccount", "legalEntity"})
+@ToString(exclude = { "accountType", "parentAccount", "legalEntity" })
 @Entity
 @Table(name = "accounts", uniqueConstraints = {
-    @UniqueConstraint(columnNames = {"code", "legal_entity_id"}),
-    @UniqueConstraint(columnNames = {"name", "legal_entity_id"})
+        @UniqueConstraint(columnNames = { "code", "legal_entity_id" }),
+        @UniqueConstraint(columnNames = { "name", "legal_entity_id" })
 })
-public class Account {
+public class Account implements BusinessObject {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -38,10 +38,10 @@ public class Account {
 
     @Column(name = "updated_at")
     private Instant updatedAt;
-    
+
     @Column(name = "created_by", length = 100)
     private String createdBy;
-    
+
     @Column(name = "updated_by", length = 100)
     private String updatedBy;
 
@@ -56,4 +56,5 @@ public class Account {
     @ManyToOne(fetch = FetchType.LAZY, optional = false)
     @JoinColumn(name = "legal_entity_id", nullable = false)
     private LegalEntity legalEntity;
+
 }
