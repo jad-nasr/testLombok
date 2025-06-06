@@ -6,6 +6,7 @@ import com.testApplication.model.Customer;
 import com.testApplication.model.LegalEntity;
 import com.testApplication.repository.CustomerRepository;
 import com.testApplication.repository.LegalEntityRepository;
+import com.testApplication.security.RequiresLegalEntityAccess;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.security.core.context.SecurityContextHolder;
@@ -30,6 +31,7 @@ public class CustomerService {
         this.customerMapper = customerMapper;
     }
 
+    @RequiresLegalEntityAccess(legalEntityIdParam = "legalEntityId")
     public CustomerDTO createCustomer(CustomerDTO customerDTO, Long legalEntityId) {
         LegalEntity legalEntity = legalEntityRepository.findById(legalEntityId)
                 .orElseThrow(() -> new RuntimeException("Legal entity not found with id: " + legalEntityId));
@@ -56,7 +58,8 @@ public class CustomerService {
     @Transactional(readOnly = true)
     public List<CustomerDTO> getAllCustomers() {
         return customerMapper.toDTOList(customerRepository.findAll());
-    }    @Transactional(readOnly = true)
+    }    @RequiresLegalEntityAccess(legalEntityIdParam = "legalEntityId")
+    @Transactional(readOnly = true)
     public List<CustomerDTO> getCustomersByLegalEntity(Long legalEntityId) {
         if (!legalEntityRepository.existsById(legalEntityId)) {
             throw new RuntimeException("Legal entity not found with id: " + legalEntityId);
@@ -64,6 +67,7 @@ public class CustomerService {
         return customerMapper.toDTOList(customerRepository.findByLegalEntity_Id(legalEntityId));
     }
 
+    @RequiresLegalEntityAccess(legalEntityIdParam = "legalEntityId")
     public CustomerDTO updateCustomer(Long id, CustomerDTO customerDTO, Long legalEntityId) {
         Customer customer = customerRepository.findById(id)
                 .orElseThrow(() -> new RuntimeException("Customer not found with id: " + id));

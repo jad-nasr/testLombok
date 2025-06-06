@@ -8,6 +8,7 @@ import com.testApplication.repository.TransactionRepository;
 import com.testApplication.repository.CustomerRepository;
 import com.testApplication.repository.LegalEntityRepository;
 import com.testApplication.mapper.TransactionMapper;
+import com.testApplication.security.RequiresLegalEntityAccess;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.security.core.context.SecurityContextHolder;
@@ -43,10 +44,13 @@ public class TransactionService {
                 .map(transactionMapper::toDTO);
     }
 
-    public Optional<TransactionDTO> findByTransactionCodeAndLegalEntity(String transactionCode, Long legalEntityId) {        return transactionRepository.findByTransactionCodeAndLegalEntity_Id(transactionCode, legalEntityId)
+    @RequiresLegalEntityAccess(legalEntityIdParam = "legalEntityId")
+    public Optional<TransactionDTO> findByTransactionCodeAndLegalEntity(String transactionCode, Long legalEntityId) {
+        return transactionRepository.findByTransactionCodeAndLegalEntity_Id(transactionCode, legalEntityId)
                 .map(transactionMapper::toDTO);
     }
 
+    @RequiresLegalEntityAccess(legalEntityIdParam = "dto.legalEntityId")
     @Transactional
     public TransactionDTO createTransaction(TransactionDTO dto, Long customerId) {
         Customer customer = customerRepository.findById(customerId)
@@ -82,6 +86,7 @@ public class TransactionService {
         return transactionMapper.toDTO(saved);
     }
 
+    @RequiresLegalEntityAccess(legalEntityIdParam = "dto.legalEntityId")
     @Transactional
     public TransactionDTO updateTransaction(Long id, TransactionDTO dto) {
         Transaction existing = transactionRepository.findById(id)
@@ -113,7 +118,8 @@ public class TransactionService {
         Customer customer = customerRepository.findById(customerId)
                 .orElseThrow(() -> new RuntimeException("Customer not found"));
         return transactionMapper.toDTOList(transactionRepository.findByCustomer(customer));
-    }    public List<TransactionDTO> getTransactionsByLegalEntity(Long legalEntityId) {
+    }    @RequiresLegalEntityAccess(legalEntityIdParam = "legalEntityId")
+    public List<TransactionDTO> getTransactionsByLegalEntity(Long legalEntityId) {
         if (!legalEntityRepository.existsById(legalEntityId)) {
             throw new RuntimeException("Legal Entity not found");
         }

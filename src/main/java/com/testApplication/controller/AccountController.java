@@ -21,41 +21,36 @@ public class AccountController {
     public AccountController(AccountService accountService, AccountMapper accountMapper) {
         this.accountService = accountService;
         this.accountMapper = accountMapper;
-    }
-
-    @GetMapping
-    public List<AccountDTO> getAllAccounts() {
-        return accountMapper.toDTOList(accountService.getAllAccounts());
+    }    @GetMapping
+    public List<AccountDTO> getAllAccounts(@RequestParam Long legalEntityId) {
+        return accountService.getAllAccounts(legalEntityId);
     }
 
     @GetMapping("/{id}")
-    public ResponseEntity<AccountDTO> getAccountById(@PathVariable Long id) {
-        return accountService.getAccountById(id)
-                .map(accountMapper::toDTO)
+    public ResponseEntity<AccountDTO> getAccountById(@PathVariable Long id, @RequestParam Long legalEntityId) {
+        return accountService.getAccountById(legalEntityId, id)
                 .map(ResponseEntity::ok)
                 .orElse(ResponseEntity.notFound().build());
     }
 
     @GetMapping("/by-legal-entity/{legalEntityId}")
     public List<AccountDTO> getAccountsByLegalEntity(@PathVariable Long legalEntityId) {
-        return accountMapper.toDTOList(accountService.getAccountsByLegalEntity(legalEntityId));
+        return accountService.getAccountsByLegalEntity(legalEntityId);
     }
 
     @GetMapping("/by-parent/{parentAccountId}")
-    public List<AccountDTO> getAccountsByParentAccount(@PathVariable Long parentAccountId) {
-        return accountMapper.toDTOList(accountService.getAccountsByParentAccount(parentAccountId));
-    }
-
-    @PostMapping
+    public List<AccountDTO> getAccountsByParentAccount(
+            @PathVariable Long parentAccountId,
+            @RequestParam Long legalEntityId) {
+        return accountService.getAccountsByParentAccount(legalEntityId, parentAccountId);
+    }    @PostMapping
     public ResponseEntity<?> createAccount(
             @RequestBody AccountDTO accountDTO,
             @RequestParam Long legalEntityId,
             @RequestParam Long accountTypeId,
             @RequestParam(required = false) Long parentAccountId) {
         try {
-            AccountDTO created = accountMapper.toDTO(
-                accountService.createAccount(legalEntityId, accountTypeId, parentAccountId, accountMapper.toEntity(accountDTO))
-            );
+            AccountDTO created = accountService.createAccount(legalEntityId, accountTypeId, parentAccountId, accountDTO);
             return new ResponseEntity<>(created, HttpStatus.CREATED);
         } catch (AccountException.LegalEntityNotFoundException e) {
             return ResponseEntity.status(HttpStatus.NOT_FOUND)
@@ -70,18 +65,15 @@ public class AccountController {
             return ResponseEntity.status(HttpStatus.BAD_REQUEST)
                     .body(Map.of("error", e.getMessage(), "code", e.getCode()));
         }
-    }
-
-    @PutMapping("/{id}")
+    }    @PutMapping("/{id}")
     public ResponseEntity<?> updateAccount(
             @PathVariable Long id,
             @RequestBody AccountDTO accountDTO,
+            @RequestParam Long legalEntityId,
             @RequestParam(required = false) Long accountTypeId,
             @RequestParam(required = false) Long parentAccountId) {
         try {
-            AccountDTO updated = accountMapper.toDTO(
-                accountService.updateAccount(id, accountMapper.toEntity(accountDTO), accountTypeId, parentAccountId)
-            );
+            AccountDTO updated = accountService.updateAccount(legalEntityId, id, accountDTO, accountTypeId, parentAccountId);
             return ResponseEntity.ok(updated);
         } catch (AccountException.InvalidAccountException | AccountException.AccountTypeNotFoundException | 
                 AccountException.ParentAccountNotFoundException e) {
@@ -91,12 +83,12 @@ public class AccountController {
             return ResponseEntity.status(HttpStatus.BAD_REQUEST)
                     .body(Map.of("error", e.getMessage(), "code", e.getCode()));
         }
-    }
-
-    @DeleteMapping("/{id}")
-    public ResponseEntity<?> deleteAccount(@PathVariable Long id) {
+    }    @DeleteMapping("/{id}")
+    public ResponseEntity<?> deleteAccount(
+            @PathVariable Long id,
+            @RequestParam Long legalEntityId) {
         try {
-            accountService.deleteAccount(id);
+            accountService.deleteAccount(legalEntityId, id);
             return ResponseEntity.noContent().build();
         } catch (AccountException.InvalidAccountException e) {
             return ResponseEntity.status(HttpStatus.NOT_FOUND)

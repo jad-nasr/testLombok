@@ -1,9 +1,15 @@
 package com.testApplication.dto;
 
 import lombok.Data;
+import lombok.Builder;
+import lombok.NoArgsConstructor;
+import lombok.AllArgsConstructor;
 import java.util.Set; // Or List<String>
 
 @Data
+@Builder
+@NoArgsConstructor
+@AllArgsConstructor
 public class UserCreationRequestDTO {
     private String username;
     private String email;

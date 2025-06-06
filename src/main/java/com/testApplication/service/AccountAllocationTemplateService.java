@@ -1,5 +1,6 @@
 package com.testApplication.service;
 
+import com.testApplication.security.RequiresLegalEntityAccess;
 import com.testApplication.dto.AccountAllocationTemplateDTO;
 import com.testApplication.dto.AccountAllocationTemplateDTO.AccountAllocationDetails;
 import com.testApplication.exception.AllocationTemplateException;
@@ -58,7 +59,8 @@ public class AccountAllocationTemplateService {
         return templateRepository.findByTemplateAccounts_IsSource(isSource).stream()
                 .map(templateMapper::toDTO)
                 .collect(Collectors.toList());
-    }    public AccountAllocationTemplateDTO createTemplate(AccountAllocationTemplateDTO dto) {
+    }    @RequiresLegalEntityAccess(legalEntityIdParam = "dto.legalEntityId")
+    public AccountAllocationTemplateDTO createTemplate(AccountAllocationTemplateDTO dto) {
         if (dto.getLegalEntityId() == null) {
             throw new AllocationTemplateException.InvalidTemplateException("Legal entity ID is required");
         }
@@ -100,7 +102,8 @@ public class AccountAllocationTemplateService {
         }
 
         return templateMapper.toDTO(templateRepository.save(template));
-    }    public AccountAllocationTemplateDTO updateTemplate(Long id, AccountAllocationTemplateDTO dto) {
+    }    @RequiresLegalEntityAccess
+    public AccountAllocationTemplateDTO updateTemplate(Long id, AccountAllocationTemplateDTO dto) {
         AccountAllocationTemplate template = templateRepository.findById(id)
                 .orElseThrow(() -> new AllocationTemplateException.InvalidTemplateException("Template not found with id: " + id));
 
@@ -168,6 +171,7 @@ public class AccountAllocationTemplateService {
         templateRepository.deleteById(id);
     }
 
+    @RequiresLegalEntityAccess(legalEntityIdParam = "legalEntityId")
     @Transactional(readOnly = true)
     public List<AccountAllocationTemplateDTO> getTemplatesByLegalEntity(Long legalEntityId) {
         return templateMapper.toDTOList(templateRepository.findByLegalEntity_Id(legalEntityId));

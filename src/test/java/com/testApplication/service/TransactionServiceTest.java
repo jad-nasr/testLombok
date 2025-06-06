@@ -15,6 +15,7 @@ import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContext;
 import org.springframework.security.core.context.SecurityContextHolder;
+import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
 
 import java.math.BigDecimal;
@@ -45,19 +46,28 @@ class TransactionServiceTest {
     @MockitoBean
     private TransactionMapper transactionMapper;
 
+    @MockitoBean
+    private SecurityService securityService;
+
     private Transaction testTransaction;
     private TransactionDTO testTransactionDTO;
     private Customer testCustomer;
-    private LegalEntity testLegalEntity;
-
-    @BeforeEach
+    private LegalEntity testLegalEntity;    @BeforeEach
     void setUp() {
         // Set up security context with test user
         SecurityContext securityContext = mock(SecurityContext.class);
         Authentication authentication = mock(Authentication.class);
-        when(authentication.getName()).thenReturn("test-user");
+        UserDetails userDetails = mock(UserDetails.class);
+        when(userDetails.getUsername()).thenReturn("test-user");
+        when(authentication.getPrincipal()).thenReturn(userDetails);
         when(securityContext.getAuthentication()).thenReturn(authentication);
         SecurityContextHolder.setContext(securityContext);
+
+        // Allow all legal entity access in tests by default
+        when(securityService.hasAccessToLegalEntity(
+            any(org.springframework.security.core.userdetails.UserDetails.class),
+            anyLong()
+        )).thenReturn(true);
 
         // Set up test entities
         testCustomer = new Customer();

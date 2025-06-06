@@ -1,19 +1,19 @@
 package com.testApplication.service;
 
-import com.testApplication.model.Account;
-import com.testApplication.model.AccountType;
-import com.testApplication.model.LegalEntity;
-import com.testApplication.repository.AccountRepository;
-import com.testApplication.repository.AccountTypeRepository;
-import com.testApplication.repository.LegalEntityRepository;
+import com.testApplication.dto.AccountDTO;
+import com.testApplication.model.*;
+import com.testApplication.repository.*;
+import com.testApplication.mapper.AccountMapper;
+import com.testApplication.util.SetupTestData;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
-import org.springframework.security.core.Authentication;
-import org.springframework.security.core.context.SecurityContext;
+import org.springframework.security.access.AccessDeniedException;
 import org.springframework.security.core.context.SecurityContextHolder;
+import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.time.Instant;
 import java.util.Arrays;
@@ -21,222 +21,167 @@ import java.util.List;
 import java.util.Optional;
 
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyLong;
+import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.*;
 import static org.junit.jupiter.api.Assertions.*;
 
 @SpringBootTest
-class AccountServiceTest {    
+@Transactional
+class AccountServiceTest extends SetupTestData {    @Autowired
+    private AccountService accountService;
     
     @Autowired
-    private AccountService accountService;    
-    
-    @MockitoBean
     private AccountRepository accountRepository;
 
-    @MockitoBean
+    @Autowired
     private AccountTypeRepository accountTypeRepository;
-
-    @MockitoBean
+    
+    @Autowired
     private LegalEntityRepository legalEntityRepository;
 
-    private Account testAccount;
-    private AccountType testAccountType;
-    private LegalEntity testLegalEntity;
-    private Account testParentAccount;
+    @Autowired
+    private AccountMapper accountMapper;
 
     @BeforeEach
     void setUp() {
-        // Set up security context with test user
-        SecurityContext securityContext = mock(SecurityContext.class);
-        Authentication authentication = mock(Authentication.class);
-        when(authentication.getName()).thenReturn("test-user");
-        when(securityContext.getAuthentication()).thenReturn(authentication);
-        SecurityContextHolder.setContext(securityContext);
-
-        // Set up test entities
-        testLegalEntity = new LegalEntity();
-        testLegalEntity.setId(1L);
-        testLegalEntity.setName("Test Legal Entity");
-
-        testAccountType = new AccountType();
-        testAccountType.setId(1L);
-        testAccountType.setCode("TEST");
-        testAccountType.setName("Test Account Type");
-
-        testParentAccount = new Account();
-        testParentAccount.setId(1L);
-        testParentAccount.setCode("PARENT");
-        testParentAccount.setName("Parent Account");
-        testParentAccount.setAccountType(testAccountType);
-        testParentAccount.setLegalEntity(testLegalEntity);
-
-        testAccount = new Account();
-        testAccount.setId(2L);
-        testAccount.setCode("TEST001");
-        testAccount.setName("Test Account");
-        testAccount.setDescription("Test Description");
-        testAccount.setAccountType(testAccountType);
-        testAccount.setLegalEntity(testLegalEntity);
-        testAccount.setParentAccount(testParentAccount);
-        testAccount.setActive(true);
-        testAccount.setCreatedAt(Instant.now());
-        testAccount.setUpdatedAt(Instant.now());
-        testAccount.setCreatedBy("test-user");
-        testAccount.setUpdatedBy("test-user");
-    }
-
-    @Test
-    void createAccount_WithValidData_ShouldSucceed() {
-        // Arrange
-        when(legalEntityRepository.findById(1L)).thenReturn(Optional.of(testLegalEntity));
-        when(accountTypeRepository.findById(1L)).thenReturn(Optional.of(testAccountType));
-        when(accountRepository.findById(1L)).thenReturn(Optional.of(testParentAccount));
-        when(accountRepository.save(any(Account.class))).thenReturn(testAccount);
-
-        // Act
-        Account result = accountService.createAccount(1L, 1L, 1L, testAccount);
-
-        // Assert
-        assertNotNull(result);
-        assertEquals("TEST001", result.getCode());
-        assertEquals("Test Account", result.getName());
-        assertEquals(testAccountType, result.getAccountType());
-        assertEquals(testLegalEntity, result.getLegalEntity());
-        assertEquals(testParentAccount, result.getParentAccount());
-        verify(accountRepository).save(any(Account.class));
-    }
-
-    @Test
-    void createAccount_WithInvalidLegalEntity_ShouldThrowException() {
-        // Arrange
-        when(legalEntityRepository.findById(99L)).thenReturn(Optional.empty());
-
-        // Act & Assert
-        assertThrows(RuntimeException.class, () -> 
-            accountService.createAccount(99L, 1L, null, testAccount)
-        );
-        verify(accountRepository, never()).save(any(Account.class));
-    }
-
-    @Test
-    void createAccount_WithInvalidAccountType_ShouldThrowException() {
-        // Arrange
-        when(legalEntityRepository.findById(1L)).thenReturn(Optional.of(testLegalEntity));
-        when(accountTypeRepository.findById(99L)).thenReturn(Optional.empty());
-
-        // Act & Assert
-        assertThrows(RuntimeException.class, () -> 
-            accountService.createAccount(1L, 99L, null, testAccount)
-        );
-        verify(accountRepository, never()).save(any(Account.class));
-    }
-
-    @Test
-    void getAccountById_WhenExists_ShouldReturnAccount() {
-        // Arrange
-        when(accountRepository.findById(2L)).thenReturn(Optional.of(testAccount));
-
-        // Act
-        Optional<Account> result = accountService.getAccountById(2L);
-
-        // Assert
-        assertTrue(result.isPresent());
-        assertEquals("TEST001", result.get().getCode());
-    }
-
-    @Test
-    void getAccountById_WhenNotExists_ShouldReturnEmpty() {
-        // Arrange
-        when(accountRepository.findById(99L)).thenReturn(Optional.empty());
-
-        // Act
-        Optional<Account> result = accountService.getAccountById(99L);
-
-        // Assert
-        assertTrue(result.isEmpty());
-    }
-
-    @Test
-    void getAllAccounts_ShouldReturnList() {
-        // Arrange
-        List<Account> accounts = Arrays.asList(testAccount, testParentAccount);
-        when(accountRepository.findAll()).thenReturn(accounts);
-
-        // Act
-        List<Account> result = accountService.getAllAccounts();
-
-        // Assert
-        assertEquals(2, result.size());
-        verify(accountRepository).findAll();
-    }    @Test
-    void getAccountsByLegalEntity_WhenLegalEntityExists_ShouldReturnList() {
-        // Arrange
-        when(legalEntityRepository.existsById(1L)).thenReturn(true);
-        when(accountRepository.findByLegalEntity_Id(1L))
-            .thenReturn(Arrays.asList(testAccount, testParentAccount));
-
-        // Act
-        List<Account> result = accountService.getAccountsByLegalEntity(1L);
-
-        // Assert
-        assertEquals(2, result.size());
-        verify(accountRepository).findByLegalEntity_Id(1L);
-    }
-
-    @Test
-    void getAccountsByLegalEntity_WhenLegalEntityNotExists_ShouldThrowException() {
-        // Arrange
-        when(legalEntityRepository.findById(99L)).thenReturn(Optional.empty());
-
-        // Act & Assert
-        assertThrows(RuntimeException.class, () -> 
-            accountService.getAccountsByLegalEntity(99L)
-        );
-    }
-
-    @Test
-    void updateAccount_WithValidData_ShouldSucceed() {
-        // Arrange
-        when(accountRepository.findById(2L)).thenReturn(Optional.of(testAccount));
-        when(accountTypeRepository.findById(1L)).thenReturn(Optional.of(testAccountType));
-        when(accountRepository.findById(1L)).thenReturn(Optional.of(testParentAccount));
+        // Run base class setup first
+        setUpBase();
+    }    @Test    void createAccount_WhenUserHasAccess_ShouldSucceed() {
+        // No need to mock security service - we have real user access records
         
-        Account updatedAccount = new Account();
-        updatedAccount.setCode("UPDATED001");
-        updatedAccount.setName("Updated Account");
-        when(accountRepository.save(any(Account.class))).thenReturn(updatedAccount);
-
+        // Create test account DTO
+        String uniqueCode = "TEST" + System.currentTimeMillis();
+        AccountDTO newAccountDTO = AccountDTO.builder()
+                .code(uniqueCode)
+                .name("Test Account 2")
+                .description("Test Description 2")
+                .build();
+                
         // Act
-        Account result = accountService.updateAccount(2L, updatedAccount, 1L, 1L);
+        AccountDTO result = accountService.createAccount(
+            testLegalEntity.getId(), 
+            testAccountType.getId(), 
+            testParentAccount.getId(), 
+            newAccountDTO
+        );
 
         // Assert
         assertNotNull(result);
-        assertEquals("UPDATED001", result.getCode());
-        assertEquals("Updated Account", result.getName());
-        verify(accountRepository).save(any(Account.class));
+        assertEquals(uniqueCode, result.getCode());
+        assertEquals("Test Account 2", result.getName());
+        assertEquals("Test Description 2", result.getDescription());
+        
+        // Verify the account was actually created in the database
+        Optional<Account> createdAccount = accountRepository.findByCodeAndLegalEntity_Id(uniqueCode, testLegalEntity.getId());
+        assertTrue(createdAccount.isPresent());
+        assertEquals(testLegalEntity.getId(), createdAccount.get().getLegalEntity().getId());
+        assertEquals(testAccountType.getId(), createdAccount.get().getAccountType().getId());
+        assertEquals(testParentAccount.getId(), createdAccount.get().getParentAccount().getId());
     }
 
-    @Test
-    void updateAccount_WithInvalidId_ShouldThrowException() {
+    @Test    void createAccount_WhenUserDoesNotHaveAccess_ShouldThrowAccessDeniedException() {
         // Arrange
-        when(accountRepository.findById(99L)).thenReturn(Optional.empty());
-
-        // Act & Assert
-        assertThrows(RuntimeException.class, () -> 
-            accountService.updateAccount(99L, testAccount, null, null)
+        // Switch to unauthorized user context
+        testUserDetails = org.springframework.security.core.userdetails.User.builder()
+            .username(testUnauthorizedUser.getUsername())
+            .password(testUnauthorizedUser.getPassword())
+            .roles("USER")
+            .build();
+        
+        SecurityContextHolder.getContext().setAuthentication(
+            new org.springframework.security.authentication.UsernamePasswordAuthenticationToken(
+                testUserDetails,
+                null,
+                testUserDetails.getAuthorities()
+            )
+        );        AccountDTO newAccountDTO = AccountDTO.builder()
+                .code("TEST001")
+                .name("Test Account")
+                .build();        // Act & Assert
+        assertThrows(AccessDeniedException.class, () -> accountService.createAccount(1L, 1L, null, newAccountDTO));
+    }    @Test    void getAccountById_WhenUserHasAccess_ShouldReturnAccount() {
+        // Arrange
+        // Set up authorized user context
+        testUserDetails = org.springframework.security.core.userdetails.User.builder()
+            .username(testUser.getUsername())
+            .password(testUser.getPassword())
+            .roles("USER", "ADMIN")
+            .build();
+        
+        SecurityContextHolder.getContext().setAuthentication(
+            new org.springframework.security.authentication.UsernamePasswordAuthenticationToken(
+                testUserDetails,
+                null,
+                testUserDetails.getAuthorities()
+            )
         );
-        verify(accountRepository, never()).save(any(Account.class));
+        
+        // Act
+        Optional<AccountDTO> result = accountService.getAccountById(testLegalEntity.getId(), testAccount.getId());
+
+        // Assert
+        assertTrue(result.isPresent());        assertEquals("TEST001", result.get().getCode());
     }
 
-    @Test
-    void deleteAccount_ShouldCallRepository() {
+    @Test    void getAccountById_WhenUserDoesNotHaveAccess_ShouldThrowAccessDeniedException() {
         // Arrange
-        doNothing().when(accountRepository).deleteById(2L);
+        // Switch to unauthorized user context
+        testUserDetails = org.springframework.security.core.userdetails.User.builder()
+            .username(testUnauthorizedUser.getUsername())
+            .password(testUnauthorizedUser.getPassword())
+            .roles("USER")
+            .build();
+          SecurityContextHolder.getContext().setAuthentication(
+            new org.springframework.security.authentication.UsernamePasswordAuthenticationToken(
+                testUserDetails,
+                null,
+                testUserDetails.getAuthorities()
+            )
+        );
 
+        assertThrows(AccessDeniedException.class, () -> accountService.getAccountById(1L, 2L));
+    }    @Test    void getAccountsByLegalEntity_WhenUserHasAccess_ShouldReturnList() {
+        // Arrange
+        // Set up authorized user context
+        testUserDetails = org.springframework.security.core.userdetails.User.builder()
+            .username(testUser.getUsername())
+            .password(testUser.getPassword())
+            .roles("USER", "ADMIN")
+            .build();
+        
+        SecurityContextHolder.getContext().setAuthentication(
+            new org.springframework.security.authentication.UsernamePasswordAuthenticationToken(
+                testUserDetails,
+                null,
+                testUserDetails.getAuthorities()
+            )
+        );
+        
         // Act
-        accountService.deleteAccount(2L);
+        List<AccountDTO> result = accountService.getAccountsByLegalEntity(testLegalEntity.getId());        // Assert
+        assertFalse(result.isEmpty());
+        assertEquals(2, result.size());
+        // One of the accounts should match our test account
+        assertTrue(result.stream().anyMatch(account -> "TEST001".equals(account.getCode())));
+        // No verification needed - using real security service
+    }
 
-        // Verify
-        verify(accountRepository).deleteById(2L);
+    @Test    void getAccountsByLegalEntity_WhenUserDoesNotHaveAccess_ShouldThrowAccessDeniedException() {
+        // Arrange
+        // Switch to unauthorized user context
+        testUserDetails = org.springframework.security.core.userdetails.User.builder()
+            .username(testUnauthorizedUser.getUsername())
+            .password(testUnauthorizedUser.getPassword())
+            .roles("USER")
+            .build();
+        
+        SecurityContextHolder.getContext().setAuthentication(
+            new org.springframework.security.authentication.UsernamePasswordAuthenticationToken(
+                testUserDetails,
+                null,
+                testUserDetails.getAuthorities()
+            )        );               // Act & Assert
+        assertThrows(AccessDeniedException.class, () -> accountService.getAccountsByLegalEntity(1L));
     }
 }

@@ -41,6 +41,9 @@ class AccountAllocationTemplateServiceTest {
     @Mock
     private AccountAllocationTemplateMapper templateMapper;
 
+    @Mock
+    private SecurityService securityService;
+
     private AccountAllocationTemplateService templateService;
 
     private AccountAllocationTemplate testTemplate;
@@ -57,8 +60,12 @@ class AccountAllocationTemplateServiceTest {
         SecurityContext securityContext = mock(SecurityContext.class);
         Authentication authentication = mock(Authentication.class);
         when(authentication.getName()).thenReturn("test-user");
+        when(authentication.getPrincipal()).thenReturn(authentication);
         when(securityContext.getAuthentication()).thenReturn(authentication);
         SecurityContextHolder.setContext(securityContext);
+        
+        // Allow all legal entity access in tests by default
+        when(securityService.hasAccessToLegalEntity(any(org.springframework.security.core.userdetails.UserDetails.class), anyLong())).thenReturn(true);
 
         templateService = new AccountAllocationTemplateService(
             templateRepository, 

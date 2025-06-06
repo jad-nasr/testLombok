@@ -12,6 +12,7 @@ import java.util.Optional;
 public interface AccountRepository extends JpaRepository<Account, Long> {
     Optional<Account> findByCodeAndLegalEntity(String code, LegalEntity legalEntity);
     List<Account> findByParentAccount(Account parentAccount);
+    
     List<Account> findByLegalEntity_Id(Long legalEntityId);
     Optional<Account> findByCodeAndLegalEntity_Id(String code, Long legalEntityId);
     boolean existsByCodeAndLegalEntity_Id(String code, Long legalEntityId);
