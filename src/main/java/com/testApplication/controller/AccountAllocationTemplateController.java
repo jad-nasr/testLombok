@@ -50,10 +50,21 @@ public class AccountAllocationTemplateController {
     public ResponseEntity<List<AccountAllocationTemplateDTO>> getTemplatesByLegalEntity(
             @PathVariable Long legalEntityId) {
         return ResponseEntity.ok(templateService.getTemplatesByLegalEntity(legalEntityId));
-    }    @PostMapping
+    }    @PostMapping("/legal-entity/{legalEntityId}")
     public ResponseEntity<?> createTemplate(
+            @PathVariable(required = true) Long legalEntityId,
             @RequestBody AccountAllocationTemplateDTO templateDTO) {
+        if (legalEntityId == null) {
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST)
+                    .body(Map.of("error", "Legal entity ID is required", "code", "INVALID_REQUEST"));
+        }
+        if (legalEntityId <= 0) {
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST)
+                    .body(Map.of("error", "Legal entity ID must be a positive number", "code", "INVALID_REQUEST"));
+        }
+
         try {
+            templateDTO.setLegalEntityId(legalEntityId);
             AccountAllocationTemplateDTO created = templateService.createTemplate(templateDTO);
             return new ResponseEntity<>(created, HttpStatus.CREATED);
         } catch (AllocationTemplateException.DuplicateTemplateException e) {
@@ -66,7 +77,7 @@ public class AccountAllocationTemplateController {
             return ResponseEntity.status(HttpStatus.BAD_REQUEST)
                     .body(Map.of("error", e.getMessage(), "code", e.getCode()));
         }
-    }    @PutMapping("/{id}")
+    }@PutMapping("/{id}")
     public ResponseEntity<?> updateTemplate(
             @PathVariable Long id,
             @RequestBody AccountAllocationTemplateDTO templateDTO) {

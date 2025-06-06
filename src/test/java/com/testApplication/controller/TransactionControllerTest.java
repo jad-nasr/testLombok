@@ -91,17 +91,15 @@ class TransactionControllerTest {
         mockMvc.perform(get("/api/transactions/99")
                 .contentType(MediaType.APPLICATION_JSON))
                 .andExpect(status().isNotFound());
-    }
-
-    @Test
+    }    @Test
     @WithMockUser(roles = "ADMIN")
     void createTransaction_WithValidData_ShouldReturnCreated() throws Exception {
         when(transactionService.createTransaction(any(TransactionDTO.class), anyLong()))
                 .thenReturn(testTransactionDTO);
 
-        mockMvc.perform(post("/api/transactions")
+        mockMvc.perform(post("/api/transactions/legal-entity/1")
                 .contentType(MediaType.APPLICATION_JSON)
-                .param("customerId", "1")  // Add customerId as request parameter
+                .param("customerId", "1")
                 .content(objectMapper.writeValueAsString(testTransactionDTO)))
                 .andExpect(status().isCreated())
                 .andExpect(jsonPath("$.transactionCode").value("TRX001"));

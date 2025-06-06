@@ -104,6 +104,18 @@ public class AccountAllocationTemplateService {
         AccountAllocationTemplate template = templateRepository.findById(id)
                 .orElseThrow(() -> new AllocationTemplateException.InvalidTemplateException("Template not found with id: " + id));
 
+        // First validate all account codes exist
+        if (dto.getAllocation_details() != null) {
+            Long legalEntityId = dto.getLegalEntityId() != null ? dto.getLegalEntityId() : template.getLegalEntity().getId();
+            for (AccountAllocationTemplateDTO.AccountAllocationDetails accountDetails : dto.getAllocation_details()) {
+                if (accountDetails.getAccountCode() != null) {
+                    if (!accountRepository.findByCodeAndLegalEntityId(accountDetails.getAccountCode(), legalEntityId).isPresent()) {
+                        throw new AllocationTemplateException.AccountNotFoundException(accountDetails.getAccountCode(), legalEntityId);
+                    }
+                }
+            }
+        }
+
         if (dto.getLegalEntityId() != null) {
             LegalEntity legalEntity = legalEntityRepository.findById(dto.getLegalEntityId())
                     .orElseThrow(() -> new AllocationTemplateException.LegalEntityNotFoundException(dto.getLegalEntityId()));

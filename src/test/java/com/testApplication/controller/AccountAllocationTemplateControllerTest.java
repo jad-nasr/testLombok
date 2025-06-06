@@ -52,6 +52,7 @@ class AccountAllocationTemplateControllerTest {
                 .name("Test Template")
                 .description("Test Description")
                 .legalEntityId(1L)
+                .legalEntityName("Test Legal Entity")
                 .allocation_details(testAccountDetails)
                 .build();
     }
@@ -65,6 +66,7 @@ class AccountAllocationTemplateControllerTest {
                 .andExpect(content().contentType(MediaType.APPLICATION_JSON))
                 .andExpect(jsonPath("$[0].id").value(1))
                 .andExpect(jsonPath("$[0].code").value("TEMPLATE001"))
+                .andExpect(jsonPath("$[0].legalEntityName").value("Test Legal Entity"))
                 .andExpect(jsonPath("$[0].allocation_details[0].accountId").value(1))
                 .andExpect(jsonPath("$[0].allocation_details[0].accountCode").value("TEST001"))
                 .andExpect(jsonPath("$[0].allocation_details[0].allocationOrder").value(1))
@@ -80,6 +82,7 @@ class AccountAllocationTemplateControllerTest {
                 .andExpect(content().contentType(MediaType.APPLICATION_JSON))
                 .andExpect(jsonPath("$.id").value(1))
                 .andExpect(jsonPath("$.code").value("TEMPLATE001"))
+                .andExpect(jsonPath("$.legalEntityName").value("Test Legal Entity"))
                 .andExpect(jsonPath("$.allocation_details[0].accountId").value(1))
                 .andExpect(jsonPath("$.allocation_details[0].isSource").value(true));
     }
@@ -114,34 +117,63 @@ class AccountAllocationTemplateControllerTest {
                 .andExpect(content().contentType(MediaType.APPLICATION_JSON))
                 .andExpect(jsonPath("$[0].id").value(1))
                 .andExpect(jsonPath("$[0].allocation_details[0].isSource").value(true));
-    }
-
-    @Test
+    }    @Test
     void createTemplate_WithValidData_ShouldCreateTemplate() throws Exception {
+        Long legalEntityId = 1L;
+        testTemplateDTO.setLegalEntityId(legalEntityId);
         when(templateService.createTemplate(any(AccountAllocationTemplateDTO.class)))
                 .thenReturn(testTemplateDTO);
 
-        mockMvc.perform(post("/api/allocation-templates")
+        mockMvc.perform(post("/api/allocation-templates/legal-entity/{id}", legalEntityId)
                 .contentType(MediaType.APPLICATION_JSON)
                 .content(objectMapper.writeValueAsString(testTemplateDTO)))
                 .andExpect(status().isCreated())
                 .andExpect(jsonPath("$.id").value(1))
                 .andExpect(jsonPath("$.code").value("TEMPLATE001"))
+                .andExpect(jsonPath("$.legalEntityName").value("Test Legal Entity"))
                 .andExpect(jsonPath("$.allocation_details[0].accountId").value(1))
                 .andExpect(jsonPath("$.allocation_details[0].isSource").value(true));
     }
 
     @Test
     void createTemplate_WithDuplicateCode_ShouldReturnConflict() throws Exception {
+        Long legalEntityId = 1L;
+        testTemplateDTO.setLegalEntityId(legalEntityId);
         when(templateService.createTemplate(any(AccountAllocationTemplateDTO.class)))
-                .thenThrow(new AllocationTemplateException.DuplicateTemplateException("TEMPLATE001", 1L));
+                .thenThrow(new AllocationTemplateException.DuplicateTemplateException("TEMPLATE001", legalEntityId));
 
-        mockMvc.perform(post("/api/allocation-templates")
+        mockMvc.perform(post("/api/allocation-templates/legal-entity/{id}", legalEntityId)
                 .contentType(MediaType.APPLICATION_JSON)
                 .content(objectMapper.writeValueAsString(testTemplateDTO)))
                 .andExpect(status().isConflict())
                 .andExpect(jsonPath("$.error").exists())
                 .andExpect(jsonPath("$.code").value("DUPLICATE_TEMPLATE"));
+    }    @Test
+    void createTemplate_WithNegativeLegalEntityId_ShouldReturnBadRequest() throws Exception {
+        mockMvc.perform(post("/api/allocation-templates/legal-entity/{id}", -1)
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(objectMapper.writeValueAsString(testTemplateDTO)))
+                .andExpect(status().isBadRequest())
+                .andExpect(jsonPath("$.error").value("Legal entity ID must be a positive number"))
+                .andExpect(jsonPath("$.code").value("INVALID_REQUEST"));
+    }
+
+    @Test
+    void createTemplate_WithZeroLegalEntityId_ShouldReturnBadRequest() throws Exception {
+        mockMvc.perform(post("/api/allocation-templates/legal-entity/{id}", 0)
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(objectMapper.writeValueAsString(testTemplateDTO)))
+                .andExpect(status().isBadRequest())
+                .andExpect(jsonPath("$.error").value("Legal entity ID must be a positive number"))
+                .andExpect(jsonPath("$.code").value("INVALID_REQUEST"));
+    }
+
+    @Test
+    void createTemplate_WithMissingLegalEntityPath_ShouldReturnNotFound() throws Exception {
+        mockMvc.perform(post("/api/allocation-templates/legal-entity/")
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(objectMapper.writeValueAsString(testTemplateDTO)))
+                .andExpect(status().isNotFound());
     }
 
     @Test
@@ -155,6 +187,7 @@ class AccountAllocationTemplateControllerTest {
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.id").value(1))
                 .andExpect(jsonPath("$.code").value("TEMPLATE001"))
+                .andExpect(jsonPath("$.legalEntityName").value("Test Legal Entity"))
                 .andExpect(jsonPath("$.allocation_details[0].accountId").value(1))
                 .andExpect(jsonPath("$.allocation_details[0].isSource").value(true));
     }

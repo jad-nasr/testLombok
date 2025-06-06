@@ -16,7 +16,6 @@ $headers = @{
 
 # Create a unique code using timestamp
 $timestamp = Get-Date -Format "yyyyMMddHHmmss"
-$uniqueCode = "ALLOC{0}" -f $timestamp
 
 # Create template body
 $template = @{
@@ -44,7 +43,7 @@ $body = $template | ConvertTo-Json -Depth 10
 Write-Host "Creating allocation template for Legal Entity ID: $LegalEntityId..."
 Write-Host "Request body:`n$body`n"
 try {
-    $rawResponse = Invoke-WebRequest -Uri "http://localhost:8080/api/allocation-templates" `
+    $rawResponse = Invoke-WebRequest -Uri "http://localhost:8080/api/allocation-templates/legal-entity/$LegalEntityId" `
         -Method Post `
         -Headers $headers `
         -Body $body `

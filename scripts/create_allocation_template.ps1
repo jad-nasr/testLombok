@@ -23,7 +23,6 @@ $template = @{
     code = $uniqueCode
     name = "Allocation Template"
     description = "Standard allocation template"
-    legalEntityId = $LegalEntityId
     allocation_details = @(
         @{
             accountId = $null
@@ -43,7 +42,8 @@ $template = @{
 $body = $template | ConvertTo-Json -Depth 10
 Write-Host "Creating allocation template for Legal Entity ID: $LegalEntityId..."
 Write-Host "Request body:`n$body`n"
-try {    $response = Invoke-RestMethod -Uri "http://localhost:8080/api/allocation-templates" `
+try {
+    $response = Invoke-RestMethod -Uri "http://localhost:8080/api/allocation-templates/legal-entity/$LegalEntityId" `
         -Method Post `
         -Headers $headers `
         -Body $body `
@@ -53,7 +53,11 @@ try {    $response = Invoke-RestMethod -Uri "http://localhost:8080/api/allocatio
     $response | Format-Table -AutoSize
 } catch {
     Write-Error "Error creating allocation template: $_"
-    if ($_.ErrorDetails) {
+    if ($_.Exception.Response) {
+        $reader = [System.IO.StreamReader]::new($_.Exception.Response.GetResponseStream())
+        $errorResponse = $reader.ReadToEnd() | ConvertFrom-Json -ErrorAction SilentlyContinue
+        Write-Error "Server response: $($errorResponse.error)"
+    } elseif ($_.ErrorDetails) {
         Write-Error $_.ErrorDetails.Message
     }
     exit 1

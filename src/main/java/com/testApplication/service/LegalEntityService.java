@@ -30,7 +30,9 @@ public class LegalEntityService {
         this.legalEntityMapper = legalEntityMapper;
     }
 
-    public LegalEntity createLegalEntity(Long legalEntityTypeId, LegalEntity legalEntity) {
+    public LegalEntityDTO createLegalEntity(Long legalEntityTypeId, LegalEntityDTO dto) {
+        LegalEntity legalEntity = legalEntityMapper.toEntity(dto);
+        
         LegalEntityType legalEntityType = legalEntityTypeRepository.findById(legalEntityTypeId)
                 .orElseThrow(() -> new RuntimeException("Legal entity type not found with id: " + legalEntityTypeId));
         legalEntity.setLegalEntityType(legalEntityType);
@@ -42,23 +44,26 @@ public class LegalEntityService {
         legalEntity.setUpdatedBy(currentUser);
         legalEntity.setUpdatedAt(Instant.now());
 
-        return legalEntityRepository.save(legalEntity);
+        LegalEntity saved = legalEntityRepository.save(legalEntity);
+        return legalEntityMapper.toDTO(saved);
     }
 
     @Transactional(readOnly = true)
-    public List<LegalEntity> getAllLegalEntities() {
-        return legalEntityRepository.findAll();
+    public List<LegalEntityDTO> getAllLegalEntities() {
+        return legalEntityMapper.toDTOList(legalEntityRepository.findAll());
     }
 
     @Transactional(readOnly = true)
-    public Optional<LegalEntity> getLegalEntityById(Long id) {
-        return legalEntityRepository.findById(id);
+    public Optional<LegalEntityDTO> getLegalEntityById(Long id) {
+        return legalEntityRepository.findById(id)
+                .map(legalEntityMapper::toDTO);
     }
 
-    public LegalEntity updateLegalEntity(Long id, LegalEntity updated, Long legalEntityTypeId) {
+    public LegalEntityDTO updateLegalEntity(Long id, LegalEntityDTO dto, Long legalEntityTypeId) {
         LegalEntity entity = legalEntityRepository.findById(id)
                 .orElseThrow(() -> new RuntimeException("Legal entity not found with id: " + id));
         
+        LegalEntity updated = legalEntityMapper.toEntity(dto);
         entity.setName(updated.getName());
         entity.setRegistrationNumber(updated.getRegistrationNumber());
         entity.setAddress(updated.getAddress());
@@ -78,7 +83,8 @@ public class LegalEntityService {
         entity.setUpdatedBy(currentUser);
         entity.setUpdatedAt(Instant.now());
         
-        return legalEntityRepository.save(entity);
+        LegalEntity saved = legalEntityRepository.save(entity);
+        return legalEntityMapper.toDTO(saved);
     }
 
     public void deleteLegalEntity(Long id) {

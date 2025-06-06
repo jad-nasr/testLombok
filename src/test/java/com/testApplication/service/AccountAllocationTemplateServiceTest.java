@@ -2,6 +2,7 @@ package com.testApplication.service;
 
 import com.testApplication.dto.AccountAllocationTemplateDTO;
 import com.testApplication.dto.AccountAllocationTemplateDTO.AccountAllocationDetails;
+import com.testApplication.exception.AllocationTemplateException;
 import com.testApplication.mapper.AccountAllocationTemplateMapper;
 import com.testApplication.model.Account;
 import com.testApplication.model.AccountAllocationTemplate;
@@ -48,7 +49,9 @@ class AccountAllocationTemplateServiceTest {
     private LegalEntity testLegalEntity;
     private AccountAllocationTemplateAccount testTemplateAccount;
     private Set<AccountAllocationTemplateAccount> testTemplateAccounts;
-    private Set<AccountAllocationDetails> testAccountDetails;    @BeforeEach
+    private Set<AccountAllocationTemplateDTO.AccountAllocationDetails> testAccountDetails;
+
+    @BeforeEach
     void setUp() {
         // Set up security context with test user
         SecurityContext securityContext = mock(SecurityContext.class);
@@ -92,7 +95,8 @@ class AccountAllocationTemplateServiceTest {
         testTemplate.setTemplateAccounts(testTemplateAccounts);
 
         testAccountDetails = new HashSet<>();
-        testAccountDetails.add(AccountAllocationDetails.builder()
+        testAccountDetails.add(AccountAllocationTemplateDTO.AccountAllocationDetails.builder()
+                .accountId(1L)
                 .accountCode("TEST001")
                 .allocationOrder(1)
                 .isSource(true)
@@ -104,6 +108,7 @@ class AccountAllocationTemplateServiceTest {
                 .name("Test Template")
                 .description("Test Description")
                 .legalEntityId(1L)
+                .legalEntityName("Test Legal Entity")
                 .allocation_details(testAccountDetails)
                 .build();
     }
@@ -122,6 +127,7 @@ class AccountAllocationTemplateServiceTest {
         assertEquals(1, result.size());
         assertEquals(testTemplateDTO, result.get(0));
         verify(templateRepository).findAll();
+        verify(templateMapper).toDTOList(any());
     }
 
     @Test
@@ -136,7 +142,9 @@ class AccountAllocationTemplateServiceTest {
         // Assert
         assertTrue(result.isPresent());
         assertEquals(testTemplateDTO, result.get());
+        assertEquals("Test Legal Entity", result.get().getLegalEntityName());
         verify(templateRepository).findById(1L);
+        verify(templateMapper).toDTO(testTemplate);
     }
 
     @Test
@@ -150,6 +158,7 @@ class AccountAllocationTemplateServiceTest {
         // Assert
         assertTrue(result.isEmpty());
         verify(templateRepository).findById(99L);
+        verify(templateMapper, never()).toDTO(any());
     }
 
     @Test
@@ -167,7 +176,9 @@ class AccountAllocationTemplateServiceTest {
         assertNotNull(result);
         assertEquals(testTemplateDTO.getCode(), result.getCode());
         assertEquals(testTemplateDTO.getName(), result.getName());
+        assertEquals(testTemplateDTO.getLegalEntityName(), result.getLegalEntityName());
         verify(templateRepository).save(any(AccountAllocationTemplate.class));
+        verify(templateMapper).toDTO(testTemplate);
     }
 
     @Test
@@ -177,10 +188,11 @@ class AccountAllocationTemplateServiceTest {
         testTemplateDTO.setLegalEntityId(99L);
 
         // Act & Assert
-        assertThrows(RuntimeException.class, () -> 
+        assertThrows(AllocationTemplateException.LegalEntityNotFoundException.class, () -> 
             templateService.createTemplate(testTemplateDTO)
         );
         verify(templateRepository, never()).save(any(AccountAllocationTemplate.class));
+        verify(templateMapper, never()).toDTO(any());
     }
 
     @Test
@@ -190,18 +202,21 @@ class AccountAllocationTemplateServiceTest {
         when(accountRepository.findByCodeAndLegalEntityId("INVALID", 1L)).thenReturn(Optional.empty());
         
         testAccountDetails.clear();
-        testAccountDetails.add(AccountAllocationDetails.builder()
+        testAccountDetails.add(AccountAllocationTemplateDTO.AccountAllocationDetails.builder()
                 .accountCode("INVALID")
                 .allocationOrder(1)
                 .isSource(true)
                 .build());
 
         // Act & Assert
-        assertThrows(RuntimeException.class, () -> 
+        assertThrows(AllocationTemplateException.AccountNotFoundException.class, () -> 
             templateService.createTemplate(testTemplateDTO)
         );
         verify(templateRepository, never()).save(any(AccountAllocationTemplate.class));
-    }    @Test
+        verify(templateMapper, never()).toDTO(any());
+    }
+
+    @Test
     void updateTemplate_WithValidData_ShouldUpdateTemplate() {
         // Arrange
         when(templateRepository.findById(1L)).thenReturn(Optional.of(testTemplate));
@@ -217,7 +232,22 @@ class AccountAllocationTemplateServiceTest {
         assertNotNull(result);
         assertEquals(testTemplateDTO.getCode(), result.getCode());
         assertEquals(testTemplateDTO.getName(), result.getName());
+        assertEquals(testTemplateDTO.getLegalEntityName(), result.getLegalEntityName());
         verify(templateRepository).save(any(AccountAllocationTemplate.class));
+        verify(templateMapper).toDTO(testTemplate);
+    }
+
+    @Test
+    void updateTemplate_WithInvalidTemplate_ShouldThrowException() {
+        // Arrange
+        when(templateRepository.findById(99L)).thenReturn(Optional.empty());
+
+        // Act & Assert
+        assertThrows(AllocationTemplateException.InvalidTemplateException.class, () -> 
+            templateService.updateTemplate(99L, testTemplateDTO)
+        );
+        verify(templateRepository, never()).save(any(AccountAllocationTemplate.class));
+        verify(templateMapper, never()).toDTO(any());
     }
 
     @Test
@@ -227,17 +257,18 @@ class AccountAllocationTemplateServiceTest {
         when(accountRepository.findByCodeAndLegalEntityId("INVALID", 1L)).thenReturn(Optional.empty());
         
         testAccountDetails.clear();
-        testAccountDetails.add(AccountAllocationDetails.builder()
+        testAccountDetails.add(AccountAllocationTemplateDTO.AccountAllocationDetails.builder()
                 .accountCode("INVALID")
                 .allocationOrder(1)
                 .isSource(true)
                 .build());
 
         // Act & Assert
-        assertThrows(RuntimeException.class, () -> 
+        assertThrows(AllocationTemplateException.AccountNotFoundException.class, () -> 
             templateService.updateTemplate(1L, testTemplateDTO)
         );
         verify(templateRepository, never()).save(any(AccountAllocationTemplate.class));
+        verify(templateMapper, never()).toDTO(any());
     }
 
     @Test
@@ -253,7 +284,26 @@ class AccountAllocationTemplateServiceTest {
         // Assert
         assertNotNull(result);
         assertEquals(1, result.size());
-        assertEquals(testTemplateDTO, result.get(0));
+        assertEquals(testTemplateDTO.getLegalEntityName(), result.get(0).getLegalEntityName());
         verify(templateRepository).findByTemplateAccounts_IsSource(true);
+    }
+
+    @Test
+    void getTemplatesByLegalEntity_ShouldReturnTemplatesForLegalEntity() {
+        // Arrange
+        when(templateRepository.findByLegalEntityId(1L))
+                .thenReturn(List.of(testTemplate));
+        when(templateMapper.toDTOList(anyList())).thenReturn(List.of(testTemplateDTO));
+
+        // Act
+        List<AccountAllocationTemplateDTO> result = templateService.getTemplatesByLegalEntity(1L);
+
+        // Assert
+        assertNotNull(result);
+        assertEquals(1, result.size());
+        assertEquals(testTemplateDTO.getLegalEntityId(), result.get(0).getLegalEntityId());
+        assertEquals(testTemplateDTO.getLegalEntityName(), result.get(0).getLegalEntityName());
+        verify(templateRepository).findByLegalEntityId(1L);
+        verify(templateMapper).toDTOList(anyList());
     }
 }

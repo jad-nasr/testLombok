@@ -29,12 +29,12 @@ public class TransactionController {
         return transactionService.getTransactionById(id)
                 .map(ResponseEntity::ok)
                 .orElse(ResponseEntity.notFound().build());
-    }
-
-    @PostMapping
+    }    @PostMapping("/legal-entity/{legalEntityId}")
     public ResponseEntity<TransactionDTO> createTransaction(
+            @PathVariable Long legalEntityId,
             @RequestBody TransactionDTO transactionDTO,
             @RequestParam Long customerId) {
+        transactionDTO.setLegalEntityId(legalEntityId);
         TransactionDTO created = transactionService.createTransaction(transactionDTO, customerId);
         return new ResponseEntity<>(created, HttpStatus.CREATED);
     }
