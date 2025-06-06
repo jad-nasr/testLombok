@@ -67,9 +67,10 @@ public class AccountService {
 
     @Transactional(readOnly = true)
     public List<Account> getAccountsByLegalEntity(Long legalEntityId) {
-        LegalEntity legalEntity = legalEntityRepository.findById(legalEntityId)
-                .orElseThrow(() -> new RuntimeException("Legal entity not found with id: " + legalEntityId));
-        return accountRepository.findByLegalEntity(legalEntity);
+        if (!legalEntityRepository.existsById(legalEntityId)) {
+            throw new RuntimeException("Legal entity not found with id: " + legalEntityId);
+        }
+        return accountRepository.findByLegalEntity_Id(legalEntityId);
     }
 
     @Transactional(readOnly = true)

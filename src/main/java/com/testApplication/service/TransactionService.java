@@ -113,11 +113,10 @@ public class TransactionService {
         Customer customer = customerRepository.findById(customerId)
                 .orElseThrow(() -> new RuntimeException("Customer not found"));
         return transactionMapper.toDTOList(transactionRepository.findByCustomer(customer));
-    }
-
-    public List<TransactionDTO> getTransactionsByLegalEntity(Long legalEntityId) {
-        LegalEntity legalEntity = legalEntityRepository.findById(legalEntityId)
-                .orElseThrow(() -> new RuntimeException("Legal Entity not found"));
-        return transactionMapper.toDTOList(transactionRepository.findByLegalEntity(legalEntity));
+    }    public List<TransactionDTO> getTransactionsByLegalEntity(Long legalEntityId) {
+        if (!legalEntityRepository.existsById(legalEntityId)) {
+            throw new RuntimeException("Legal Entity not found");
+        }
+        return transactionMapper.toDTOList(transactionRepository.findByLegalEntity_Id(legalEntityId));
     }
 }

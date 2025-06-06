@@ -12,7 +12,11 @@ import java.time.Instant;
 @Builder
 @Entity
 @Table(name = "transactions")
-public class Transaction {
+public class Transaction implements BusinessObject {
+    @Override
+    public Long getLegalEntityId() {
+        return legalEntity != null ? legalEntity.getId() : null;
+    }
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)

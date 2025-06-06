@@ -168,13 +168,11 @@ class AccountServiceTest {
         // Assert
         assertEquals(2, result.size());
         verify(accountRepository).findAll();
-    }
-
-    @Test
+    }    @Test
     void getAccountsByLegalEntity_WhenLegalEntityExists_ShouldReturnList() {
         // Arrange
-        when(legalEntityRepository.findById(1L)).thenReturn(Optional.of(testLegalEntity));
-        when(accountRepository.findByLegalEntity(testLegalEntity))
+        when(legalEntityRepository.existsById(1L)).thenReturn(true);
+        when(accountRepository.findByLegalEntity_Id(1L))
             .thenReturn(Arrays.asList(testAccount, testParentAccount));
 
         // Act
@@ -182,7 +180,7 @@ class AccountServiceTest {
 
         // Assert
         assertEquals(2, result.size());
-        verify(accountRepository).findByLegalEntity(testLegalEntity);
+        verify(accountRepository).findByLegalEntity_Id(1L);
     }
 
     @Test

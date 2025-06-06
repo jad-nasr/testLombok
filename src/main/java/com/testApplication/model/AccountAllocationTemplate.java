@@ -21,10 +21,13 @@ import java.util.Set;
 @Entity
 @Table(name = "account_allocation_templates",
     uniqueConstraints = {
-        @UniqueConstraint(columnNames = {"code", "legal_entity_id"})
-    }
+        @UniqueConstraint(columnNames = {"code", "legal_entity_id"})    }
 )
-public class AccountAllocationTemplate {
+public class AccountAllocationTemplate implements BusinessObject {
+    @Override
+    public Long getLegalEntityId() {
+        return legalEntity != null ? legalEntity.getId() : null;
+    }
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)

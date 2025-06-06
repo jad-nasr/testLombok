@@ -56,13 +56,12 @@ public class CustomerService {
     @Transactional(readOnly = true)
     public List<CustomerDTO> getAllCustomers() {
         return customerMapper.toDTOList(customerRepository.findAll());
-    }
-
-    @Transactional(readOnly = true)
+    }    @Transactional(readOnly = true)
     public List<CustomerDTO> getCustomersByLegalEntity(Long legalEntityId) {
-        LegalEntity legalEntity = legalEntityRepository.findById(legalEntityId)
-                .orElseThrow(() -> new RuntimeException("Legal entity not found with id: " + legalEntityId));
-        return customerMapper.toDTOList(customerRepository.findByLegalEntity(legalEntity));
+        if (!legalEntityRepository.existsById(legalEntityId)) {
+            throw new RuntimeException("Legal entity not found with id: " + legalEntityId);
+        }
+        return customerMapper.toDTOList(customerRepository.findByLegalEntity_Id(legalEntityId));
     }
 
     public CustomerDTO updateCustomer(Long id, CustomerDTO customerDTO, Long legalEntityId) {
