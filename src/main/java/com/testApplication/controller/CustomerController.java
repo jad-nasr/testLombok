@@ -1,10 +1,12 @@
 package com.testApplication.controller;
 
 import com.testApplication.dto.CustomerDTO;
+import com.testApplication.exception.CustomerException;
 import com.testApplication.service.CustomerService;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+import java.util.Map;
 
 import java.util.List;
 
@@ -19,13 +21,22 @@ public class CustomerController {
     }
 
     @PostMapping
-    public ResponseEntity<CustomerDTO> createCustomer(
+    public ResponseEntity<?> createCustomer(
             @RequestBody CustomerDTO customerDTO,
             @RequestParam Long legalEntityId) {
-        return new ResponseEntity<>(
-            customerService.createCustomer(customerDTO, legalEntityId),
-            HttpStatus.CREATED
-        );
+        try {
+            CustomerDTO created = customerService.createCustomer(customerDTO, legalEntityId);
+            return new ResponseEntity<>(created, HttpStatus.CREATED);
+        } catch (CustomerException.LegalEntityNotFoundException e) {
+            return ResponseEntity.status(HttpStatus.NOT_FOUND)
+                    .body(Map.of("error", e.getMessage(), "code", e.getCode()));
+        } catch (CustomerException.DuplicateCustomerException e) {
+            return ResponseEntity.status(HttpStatus.CONFLICT)
+                    .body(Map.of("error", e.getMessage(), "code", e.getCode()));
+        } catch (CustomerException e) {
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST)
+                    .body(Map.of("error", e.getMessage(), "code", e.getCode()));
+        }
     }
 
     @GetMapping("/{id}")
@@ -46,25 +57,33 @@ public class CustomerController {
     }
 
     @PutMapping("/{id}")
-    public ResponseEntity<CustomerDTO> updateCustomer(
+    public ResponseEntity<?> updateCustomer(
             @PathVariable Long id,
             @RequestBody CustomerDTO customerDTO,
             @RequestParam(required = false) Long legalEntityId) {
         try {
-            CustomerDTO updatedCustomer = customerService.updateCustomer(id, customerDTO, legalEntityId);
-            return ResponseEntity.ok(updatedCustomer);
-        } catch (RuntimeException e) {
-            return ResponseEntity.notFound().build();
+            CustomerDTO updated = customerService.updateCustomer(id, customerDTO, legalEntityId);
+            return ResponseEntity.ok(updated);
+        } catch (CustomerException.InvalidCustomerException | CustomerException.LegalEntityNotFoundException e) {
+            return ResponseEntity.status(HttpStatus.NOT_FOUND)
+                    .body(Map.of("error", e.getMessage(), "code", e.getCode()));
+        } catch (CustomerException e) {
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST)
+                    .body(Map.of("error", e.getMessage(), "code", e.getCode()));
         }
     }
 
     @DeleteMapping("/{id}")
-    public ResponseEntity<Void> deleteCustomer(@PathVariable Long id) {
+    public ResponseEntity<?> deleteCustomer(@PathVariable Long id) {
         try {
             customerService.deleteCustomer(id);
             return ResponseEntity.noContent().build();
-        } catch (RuntimeException e) {
-            return ResponseEntity.notFound().build();
+        } catch (CustomerException.InvalidCustomerException e) {
+            return ResponseEntity.status(HttpStatus.NOT_FOUND)
+                    .body(Map.of("error", e.getMessage(), "code", e.getCode()));
+        } catch (CustomerException e) {
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST)
+                    .body(Map.of("error", e.getMessage(), "code", e.getCode()));
         }
     }
 }

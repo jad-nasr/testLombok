@@ -4,7 +4,9 @@ import com.testApplication.model.AccountCategory;
 import com.testApplication.repository.AccountCategoryRepository;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.security.core.context.SecurityContextHolder;
 
+import java.time.Instant;
 import java.util.List;
 import java.util.Optional;
 
@@ -37,6 +39,13 @@ public class AccountCategoryService {
         if (accountCategoryRepository.existsByCode(accountCategory.getCode())) {
             throw new RuntimeException("Account category already exists with code: " + accountCategory.getCode());
         }
+
+        String currentUser = SecurityContextHolder.getContext().getAuthentication().getName();
+        accountCategory.setCreatedBy(currentUser);
+        accountCategory.setCreatedAt(Instant.now());
+        accountCategory.setUpdatedBy(currentUser);
+        accountCategory.setUpdatedAt(Instant.now());
+
         return accountCategoryRepository.save(accountCategory);
     }
 
@@ -53,6 +62,10 @@ public class AccountCategoryService {
         accountCategory.setCode(updated.getCode());
         accountCategory.setName(updated.getName());
         accountCategory.setDescription(updated.getDescription());
+
+        String currentUser = SecurityContextHolder.getContext().getAuthentication().getName();
+        accountCategory.setUpdatedBy(currentUser);
+        accountCategory.setUpdatedAt(Instant.now());
 
         return accountCategoryRepository.save(accountCategory);
     }

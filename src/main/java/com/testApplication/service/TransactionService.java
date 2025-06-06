@@ -8,10 +8,11 @@ import com.testApplication.repository.TransactionRepository;
 import com.testApplication.repository.CustomerRepository;
 import com.testApplication.repository.LegalEntityRepository;
 import com.testApplication.mapper.TransactionMapper;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.security.core.context.SecurityContextHolder;
 
+import java.time.Instant;
 import java.util.List;
 import java.util.Optional;
 
@@ -22,7 +23,6 @@ public class TransactionService {
     private final LegalEntityRepository legalEntityRepository;
     private final TransactionMapper transactionMapper;
 
-    @Autowired
     public TransactionService(
             TransactionRepository transactionRepository,
             CustomerRepository customerRepository,
@@ -64,6 +64,8 @@ public class TransactionService {
             throw new RuntimeException("Transaction already exists for this legal entity");
         }
 
+        String currentUser = SecurityContextHolder.getContext().getAuthentication().getName();
+
         Transaction transaction = Transaction.builder()
                 .transactionCode(dto.getTransactionCode())
                 .transactionType(dto.getTransactionType())
@@ -74,6 +76,10 @@ public class TransactionService {
                 .currency(dto.getCurrency())
                 .customer(customer)
                 .legalEntity(legalEntity)
+                .createdBy(currentUser)
+                .createdAt(Instant.now())
+                .updatedBy(currentUser)
+                .updatedAt(Instant.now())
                 .build();
 
         Transaction saved = transactionRepository.save(transaction);
@@ -93,11 +99,13 @@ public class TransactionService {
         existing.setAmount(dto.getAmount());
         existing.setCurrency(dto.getCurrency());
 
+        String currentUser = SecurityContextHolder.getContext().getAuthentication().getName();
+        existing.setUpdatedBy(currentUser);
+        existing.setUpdatedAt(Instant.now());
+
         Transaction updated = transactionRepository.save(existing);
         return transactionMapper.toDTO(updated);
-    }
-
-    @Transactional
+    }    @Transactional
     public void deleteTransaction(Long id) {
         if (!transactionRepository.existsById(id)) {
             throw new RuntimeException("Transaction not found");

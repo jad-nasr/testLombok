@@ -1,11 +1,13 @@
 package com.testApplication.controller;
 
 import com.testApplication.dto.AccountAllocationTemplateDTO;
+import com.testApplication.exception.AllocationTemplateException;
 import com.testApplication.service.AccountAllocationTemplateService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+import java.util.Map;
 import java.util.List;
 
 @RestController
@@ -48,38 +50,52 @@ public class AccountAllocationTemplateController {
     public ResponseEntity<List<AccountAllocationTemplateDTO>> getTemplatesByLegalEntity(
             @PathVariable Long legalEntityId) {
         return ResponseEntity.ok(templateService.getTemplatesByLegalEntity(legalEntityId));
-    }
-
-    @PostMapping
-    public ResponseEntity<AccountAllocationTemplateDTO> createTemplate(
+    }    @PostMapping
+    public ResponseEntity<?> createTemplate(
             @RequestBody AccountAllocationTemplateDTO templateDTO) {
         try {
             AccountAllocationTemplateDTO created = templateService.createTemplate(templateDTO);
             return new ResponseEntity<>(created, HttpStatus.CREATED);
-        } catch (RuntimeException e) {
-            return ResponseEntity.badRequest().build();
+        } catch (AllocationTemplateException.DuplicateTemplateException e) {
+            return ResponseEntity.status(HttpStatus.CONFLICT)
+                    .body(Map.of("error", e.getMessage(), "code", e.getCode()));
+        } catch (AllocationTemplateException.LegalEntityNotFoundException e) {
+            return ResponseEntity.status(HttpStatus.NOT_FOUND)
+                    .body(Map.of("error", e.getMessage(), "code", e.getCode()));
+        } catch (AllocationTemplateException e) {
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST)
+                    .body(Map.of("error", e.getMessage(), "code", e.getCode()));
         }
-    }
-
-    @PutMapping("/{id}")
-    public ResponseEntity<AccountAllocationTemplateDTO> updateTemplate(
+    }    @PutMapping("/{id}")
+    public ResponseEntity<?> updateTemplate(
             @PathVariable Long id,
             @RequestBody AccountAllocationTemplateDTO templateDTO) {
         try {
             AccountAllocationTemplateDTO updated = templateService.updateTemplate(id, templateDTO);
             return ResponseEntity.ok(updated);
-        } catch (RuntimeException e) {
-            return ResponseEntity.notFound().build();
+        } catch (AllocationTemplateException.InvalidTemplateException | AllocationTemplateException.AccountNotFoundException e) {
+            return ResponseEntity.status(HttpStatus.NOT_FOUND)
+                    .body(Map.of("error", e.getMessage(), "code", e.getCode()));
+        } catch (AllocationTemplateException.DuplicateTemplateException e) {
+            return ResponseEntity.status(HttpStatus.CONFLICT)
+                    .body(Map.of("error", e.getMessage(), "code", e.getCode()));
+        } catch (AllocationTemplateException e) {
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST)
+                    .body(Map.of("error", e.getMessage(), "code", e.getCode()));
         }
     }
 
     @DeleteMapping("/{id}")
-    public ResponseEntity<Void> deleteTemplate(@PathVariable Long id) {
+    public ResponseEntity<?> deleteTemplate(@PathVariable Long id) {
         try {
             templateService.deleteTemplate(id);
             return ResponseEntity.noContent().build();
-        } catch (RuntimeException e) {
-            return ResponseEntity.notFound().build();
+        } catch (AllocationTemplateException.InvalidTemplateException e) {
+            return ResponseEntity.status(HttpStatus.NOT_FOUND)
+                    .body(Map.of("error", e.getMessage(), "code", e.getCode()));
+        } catch (AllocationTemplateException e) {
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST)
+                    .body(Map.of("error", e.getMessage(), "code", e.getCode()));
         }
     }
 }

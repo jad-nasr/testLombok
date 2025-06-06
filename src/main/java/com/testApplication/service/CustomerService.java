@@ -8,7 +8,9 @@ import com.testApplication.repository.CustomerRepository;
 import com.testApplication.repository.LegalEntityRepository;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.security.core.context.SecurityContextHolder;
 
+import java.time.Instant;
 import java.util.List;
 import java.util.Optional;
 
@@ -34,6 +36,12 @@ public class CustomerService {
         
         Customer customer = customerMapper.toEntity(customerDTO);
         customer.setLegalEntity(legalEntity);
+        
+        String currentUser = SecurityContextHolder.getContext().getAuthentication().getName();
+        customer.setCreatedBy(currentUser);
+        customer.setCreatedAt(Instant.now());
+        customer.setUpdatedBy(currentUser);
+        customer.setUpdatedAt(Instant.now());
         
         Customer savedCustomer = customerRepository.save(customer);
         return customerMapper.toDTO(savedCustomer);
@@ -72,6 +80,10 @@ public class CustomerService {
         customer.setPhone(customerDTO.getPhone());
         customer.setAddress(customerDTO.getAddress());
         customer.setType(customerDTO.getType());
+        
+        String currentUser = SecurityContextHolder.getContext().getAuthentication().getName();
+        customer.setUpdatedBy(currentUser);
+        customer.setUpdatedAt(Instant.now());
         
         Customer updatedCustomer = customerRepository.save(customer);
         return customerMapper.toDTO(updatedCustomer);

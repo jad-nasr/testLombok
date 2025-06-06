@@ -6,9 +6,11 @@ import com.testApplication.model.LegalEntity;
 import com.testApplication.repository.AccountRepository;
 import com.testApplication.repository.AccountTypeRepository;
 import com.testApplication.repository.LegalEntityRepository;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.time.Instant;
 import java.util.List;
 import java.util.Optional;
 
@@ -44,6 +46,12 @@ public class AccountService {
             account.setParentAccount(null);
         }
 
+        String currentUser = SecurityContextHolder.getContext().getAuthentication().getName();
+        account.setCreatedBy(currentUser);
+        account.setCreatedAt(Instant.now());
+        account.setUpdatedBy(currentUser);
+        account.setUpdatedAt(Instant.now());
+
         return accountRepository.save(account);
     }
 
@@ -78,10 +86,6 @@ public class AccountService {
         account.setCode(updated.getCode());
         account.setName(updated.getName());
         account.setDescription(updated.getDescription());
-        account.setCreatedAt(updated.getCreatedAt());
-        account.setUpdatedAt(updated.getUpdatedAt());
-        account.setCreatedBy(updated.getCreatedBy());
-        account.setUpdatedBy(updated.getUpdatedBy());
         account.setActive(updated.isActive());
 
         if (accountTypeId != null) {
@@ -97,6 +101,10 @@ public class AccountService {
         } else {
             account.setParentAccount(null);
         }
+
+        String currentUser = SecurityContextHolder.getContext().getAuthentication().getName();
+        account.setUpdatedBy(currentUser);
+        account.setUpdatedAt(Instant.now());
 
         return accountRepository.save(account);
     }

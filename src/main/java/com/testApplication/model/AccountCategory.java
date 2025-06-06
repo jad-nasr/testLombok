@@ -2,6 +2,7 @@ package com.testApplication.model;
 
 import jakarta.persistence.*;
 import lombok.*;
+import java.time.Instant;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -27,5 +28,18 @@ public class AccountCategory {
     private String description;
     
     @OneToMany(mappedBy = "accountCategory", fetch = FetchType.LAZY)
-    private List<AccountType> accountTypes;
+    @Builder.Default
+    private List<AccountType> accountTypes = new ArrayList<>();
+
+    @Column(name = "created_at")
+    private Instant createdAt;
+
+    @Column(name = "updated_at")
+    private Instant updatedAt;
+    
+    @Column(name = "created_by", length = 100)
+    private String createdBy;
+    
+    @Column(name = "updated_by", length = 100)
+    private String updatedBy;
 }

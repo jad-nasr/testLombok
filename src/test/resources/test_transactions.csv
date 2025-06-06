@@ -1,5 +1,5 @@
 transaction_code,account_code,amount,description,is_debit
-TRANS004,ACC001,1000,Initial deposit,false
-TRANS004,ACC002,1000,Initial deposit transfer,true
-TRANS005,ACC001,500,Payment received,false
-TRANS005,ACC003,500,Payment distribution,true
+TRANS001,ACC001,1000.00,Initial deposit,false
+TRANS001,ACC002,1000.00,Initial deposit transfer,true
+TRANS002,ACC001,500.00,Payment received,false
+TRANS002,ACC003,500.00,Payment distribution,true

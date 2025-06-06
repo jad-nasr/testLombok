@@ -2,6 +2,7 @@ package com.testApplication.model;
 
 import jakarta.persistence.*;
 import lombok.*;
+import java.time.Instant;
 
 @Data
 @NoArgsConstructor
@@ -27,6 +28,18 @@ public class AccountType {
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "account_category_id")
     private AccountCategory accountCategory;
+
+    @Column(name = "created_at")
+    private Instant createdAt;
+
+    @Column(name = "updated_at")
+    private Instant updatedAt;
+    
+    @Column(name = "created_by", length = 100)
+    private String createdBy;
+    
+    @Column(name = "updated_by", length = 100)
+    private String updatedBy;
 
     public AccountType(String code) {
         this.code = code;

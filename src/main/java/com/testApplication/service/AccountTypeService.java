@@ -6,9 +6,11 @@ import com.testApplication.model.AccountType;
 import com.testApplication.model.AccountCategory;
 import com.testApplication.repository.AccountTypeRepository;
 import com.testApplication.repository.AccountCategoryRepository;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.time.Instant;
 import java.util.List;
 import java.util.Optional;
 
@@ -52,6 +54,12 @@ public class AccountTypeService {
                 .orElseThrow(() -> new RuntimeException("Account category not found with id: " + accountTypeDTO.getAccountCategoryId()));
             accountType.setAccountCategory(category);
         }
+
+        String currentUser = SecurityContextHolder.getContext().getAuthentication().getName();
+        accountType.setCreatedBy(currentUser);
+        accountType.setCreatedAt(Instant.now());
+        accountType.setUpdatedBy(currentUser);
+        accountType.setUpdatedAt(Instant.now());
         
         AccountType savedType = accountTypeRepository.save(accountType);
         return accountTypeMapper.toDTO(savedType);
@@ -72,6 +80,10 @@ public class AccountTypeService {
         } else {
             accountType.setAccountCategory(null);
         }
+        
+        String currentUser = SecurityContextHolder.getContext().getAuthentication().getName();
+        accountType.setUpdatedBy(currentUser);
+        accountType.setUpdatedAt(Instant.now());
         
         AccountType updatedType = accountTypeRepository.save(accountType);
         return accountTypeMapper.toDTO(updatedType);

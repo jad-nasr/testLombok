@@ -13,7 +13,12 @@ import com.testApplication.repository.LegalEntityRepository;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.mockito.Mock;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.boot.test.mock.mockito.MockBean;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.context.SecurityContext;
+import org.springframework.security.core.context.SecurityContextHolder;
 import java.util.*;
 
 import static org.junit.jupiter.api.Assertions.*;
@@ -43,10 +48,15 @@ class AccountAllocationTemplateServiceTest {
     private LegalEntity testLegalEntity;
     private AccountAllocationTemplateAccount testTemplateAccount;
     private Set<AccountAllocationTemplateAccount> testTemplateAccounts;
-    private Set<AccountAllocationDetails> testAccountDetails;
-
-    @BeforeEach
+    private Set<AccountAllocationDetails> testAccountDetails;    @BeforeEach
     void setUp() {
+        // Set up security context with test user
+        SecurityContext securityContext = mock(SecurityContext.class);
+        Authentication authentication = mock(Authentication.class);
+        when(authentication.getName()).thenReturn("test-user");
+        when(securityContext.getAuthentication()).thenReturn(authentication);
+        SecurityContextHolder.setContext(securityContext);
+
         templateService = new AccountAllocationTemplateService(
             templateRepository, 
             accountRepository,

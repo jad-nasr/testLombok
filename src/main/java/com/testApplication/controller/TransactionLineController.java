@@ -1,11 +1,12 @@
 package com.testApplication.controller;
 
 import com.testApplication.model.TransactionLine;
+import com.testApplication.exception.TransactionLineException;
 import com.testApplication.service.TransactionLineService;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+import java.util.Map;
 
 import java.util.List;
 
@@ -13,10 +14,7 @@ import java.util.List;
 @RequestMapping("/api/transaction-lines")
 public class TransactionLineController {
 
-    private final TransactionLineService transactionLineService;
-
-    @Autowired
-    public TransactionLineController(TransactionLineService transactionLineService) {
+    private final TransactionLineService transactionLineService;    public TransactionLineController(TransactionLineService transactionLineService) {
         this.transactionLineService = transactionLineService;
     }
 
@@ -33,45 +31,84 @@ public class TransactionLineController {
     }
 
     @PostMapping
-    public ResponseEntity<TransactionLine> createTransactionLine(
+    public ResponseEntity<?> createTransactionLine(
             @RequestBody TransactionLine transactionLine,
             @RequestParam Long transactionId,
             @RequestParam Long accountId) {
-        TransactionLine created = transactionLineService.createTransactionLine(transactionLine, transactionId, accountId);
-        return new ResponseEntity<>(created, HttpStatus.CREATED);
+        try {
+            TransactionLine created = transactionLineService.createTransactionLine(transactionLine, transactionId, accountId);
+            return new ResponseEntity<>(created, HttpStatus.CREATED);
+        } catch (TransactionLineException.TransactionNotFoundException | 
+                TransactionLineException.AccountNotFoundException e) {
+            return ResponseEntity.status(HttpStatus.NOT_FOUND)
+                    .body(Map.of("error", e.getMessage(), "code", e.getCode()));
+        } catch (TransactionLineException.ValidationException e) {
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST)
+                    .body(Map.of("error", e.getMessage(), "code", e.getCode()));
+        } catch (TransactionLineException e) {
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST)
+                    .body(Map.of("error", e.getMessage(), "code", e.getCode()));
+        }
     }
 
     @PutMapping("/{id}")
-    public ResponseEntity<TransactionLine> updateTransactionLine(
+    public ResponseEntity<?> updateTransactionLine(
             @PathVariable Long id,
             @RequestBody TransactionLine transactionLine) {
         try {
             TransactionLine updated = transactionLineService.updateTransactionLine(id, transactionLine);
             return ResponseEntity.ok(updated);
-        } catch (RuntimeException e) {
-            return ResponseEntity.notFound().build();
+        } catch (TransactionLineException.InvalidTransactionLineException e) {
+            return ResponseEntity.status(HttpStatus.NOT_FOUND)
+                    .body(Map.of("error", e.getMessage(), "code", e.getCode()));
+        } catch (TransactionLineException.ValidationException e) {
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST)
+                    .body(Map.of("error", e.getMessage(), "code", e.getCode()));
+        } catch (TransactionLineException e) {
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST)
+                    .body(Map.of("error", e.getMessage(), "code", e.getCode()));
         }
     }
 
     @DeleteMapping("/{id}")
-    public ResponseEntity<Void> deleteTransactionLine(@PathVariable Long id) {
+    public ResponseEntity<?> deleteTransactionLine(@PathVariable Long id) {
         try {
             transactionLineService.deleteTransactionLine(id);
             return ResponseEntity.noContent().build();
-        } catch (RuntimeException e) {
-            return ResponseEntity.notFound().build();
+        } catch (TransactionLineException.InvalidTransactionLineException e) {
+            return ResponseEntity.status(HttpStatus.NOT_FOUND)
+                    .body(Map.of("error", e.getMessage(), "code", e.getCode()));
+        } catch (TransactionLineException e) {
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST)
+                    .body(Map.of("error", e.getMessage(), "code", e.getCode()));
         }
     }
 
     @GetMapping("/by-transaction/{transactionId}")
-    public ResponseEntity<List<TransactionLine>> getTransactionLinesByTransaction(@PathVariable Long transactionId) {
-        List<TransactionLine> transactionLines = transactionLineService.getTransactionLinesByTransaction(transactionId);
-        return ResponseEntity.ok(transactionLines);
+    public ResponseEntity<?> getTransactionLinesByTransaction(@PathVariable Long transactionId) {
+        try {
+            List<TransactionLine> transactionLines = transactionLineService.getTransactionLinesByTransaction(transactionId);
+            return ResponseEntity.ok(transactionLines);
+        } catch (TransactionLineException.TransactionNotFoundException e) {
+            return ResponseEntity.status(HttpStatus.NOT_FOUND)
+                    .body(Map.of("error", e.getMessage(), "code", e.getCode()));
+        } catch (TransactionLineException e) {
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST)
+                    .body(Map.of("error", e.getMessage(), "code", e.getCode()));
+        }
     }
 
     @GetMapping("/by-account/{accountId}")
-    public ResponseEntity<List<TransactionLine>> getTransactionLinesByAccount(@PathVariable Long accountId) {
-        List<TransactionLine> transactionLines = transactionLineService.getTransactionLinesByAccount(accountId);
-        return ResponseEntity.ok(transactionLines);
+    public ResponseEntity<?> getTransactionLinesByAccount(@PathVariable Long accountId) {
+        try {
+            List<TransactionLine> transactionLines = transactionLineService.getTransactionLinesByAccount(accountId);
+            return ResponseEntity.ok(transactionLines);
+        } catch (TransactionLineException.AccountNotFoundException e) {
+            return ResponseEntity.status(HttpStatus.NOT_FOUND)
+                    .body(Map.of("error", e.getMessage(), "code", e.getCode()));
+        } catch (TransactionLineException e) {
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST)
+                    .body(Map.of("error", e.getMessage(), "code", e.getCode()));
+        }
     }
 }

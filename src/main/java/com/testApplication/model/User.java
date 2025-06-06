@@ -40,5 +40,6 @@ public class User {
             joinColumns = @JoinColumn(name = "user_id", referencedColumnName = "id"), // FK to User table
             inverseJoinColumns = @JoinColumn(name = "role_id", referencedColumnName = "id") // FK to Role table
     )
+    @Builder.Default
     private Set<Role> roles = new HashSet<>();
 }

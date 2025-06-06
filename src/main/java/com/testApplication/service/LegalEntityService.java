@@ -8,7 +8,9 @@ import com.testApplication.dto.LegalEntityDTO;
 import com.testApplication.mapper.LegalEntityMapper;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.security.core.context.SecurityContextHolder;
 
+import java.time.Instant;
 import java.util.List;
 import java.util.Optional;
 
@@ -33,6 +35,13 @@ public class LegalEntityService {
                 .orElseThrow(() -> new RuntimeException("Legal entity type not found with id: " + legalEntityTypeId));
         legalEntity.setLegalEntityType(legalEntityType);
         legalEntity.setType(legalEntityType.getCode());
+
+        String currentUser = SecurityContextHolder.getContext().getAuthentication().getName();
+        legalEntity.setCreatedBy(currentUser);
+        legalEntity.setCreatedAt(Instant.now());
+        legalEntity.setUpdatedBy(currentUser);
+        legalEntity.setUpdatedAt(Instant.now());
+
         return legalEntityRepository.save(legalEntity);
     }
 
@@ -64,6 +73,10 @@ public class LegalEntityService {
             entity.setLegalEntityType(type);
             entity.setType(type.getCode());
         }
+
+        String currentUser = SecurityContextHolder.getContext().getAuthentication().getName();
+        entity.setUpdatedBy(currentUser);
+        entity.setUpdatedAt(Instant.now());
         
         return legalEntityRepository.save(entity);
     }

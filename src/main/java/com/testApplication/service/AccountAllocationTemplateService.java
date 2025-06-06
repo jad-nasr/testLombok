@@ -2,6 +2,7 @@ package com.testApplication.service;
 
 import com.testApplication.dto.AccountAllocationTemplateDTO;
 import com.testApplication.dto.AccountAllocationTemplateDTO.AccountAllocationDetails;
+import com.testApplication.exception.AllocationTemplateException;
 import com.testApplication.mapper.AccountAllocationTemplateMapper;
 import com.testApplication.model.AccountAllocationTemplate;
 import com.testApplication.model.AccountAllocationTemplateAccount;
@@ -10,6 +11,7 @@ import com.testApplication.model.LegalEntity;
 import com.testApplication.repository.AccountAllocationTemplateRepository;
 import com.testApplication.repository.AccountRepository;
 import com.testApplication.repository.LegalEntityRepository;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import java.time.Instant;
@@ -58,16 +60,15 @@ public class AccountAllocationTemplateService {
                 .collect(Collectors.toList());
     }    public AccountAllocationTemplateDTO createTemplate(AccountAllocationTemplateDTO dto) {
         if (dto.getLegalEntityId() == null) {
-            throw new RuntimeException("Legal entity ID is required");
+            throw new AllocationTemplateException.InvalidTemplateException("Legal entity ID is required");
         }
 
         LegalEntity legalEntity = legalEntityRepository.findById(dto.getLegalEntityId())
-                .orElseThrow(() -> new RuntimeException("Legal entity not found with id: " + dto.getLegalEntityId()));
+                .orElseThrow(() -> new AllocationTemplateException.LegalEntityNotFoundException(dto.getLegalEntityId()));
 
         if (templateRepository.existsByCodeAndLegalEntityId(dto.getCode(), dto.getLegalEntityId())) {
-            throw new RuntimeException("Template with code " + dto.getCode() + " already exists for this legal entity");
-        }
-
+            throw new AllocationTemplateException.DuplicateTemplateException(dto.getCode(), dto.getLegalEntityId());
+        }String currentUser = SecurityContextHolder.getContext().getAuthentication().getName();
         AccountAllocationTemplate template = AccountAllocationTemplate.builder()
                 .code(dto.getCode())
                 .name(dto.getName())
@@ -75,18 +76,17 @@ public class AccountAllocationTemplateService {
                 .legalEntity(legalEntity)
                 .templateAccounts(new HashSet<>())
                 .createdAt(Instant.now())
-                .createdBy("SYSTEM") // TODO: Replace with actual user when security is implemented
+                .createdBy(currentUser)
                 .build();
 
         // Add template accounts
         if (dto.getAllocation_details() != null) {
-            for (AccountAllocationDetails accountDetails : dto.getAllocation_details()) {
-                if (accountDetails.getAccountCode() == null || accountDetails.getAccountCode().trim().isEmpty()) {
-                    throw new RuntimeException("Account code is required for all allocation details");
+            for (AccountAllocationDetails accountDetails : dto.getAllocation_details()) {                if (accountDetails.getAccountCode() == null || accountDetails.getAccountCode().trim().isEmpty()) {
+                    throw new AllocationTemplateException.InvalidTemplateException("Account code is required for all allocation details");
                 }
 
                 Account account = accountRepository.findByCodeAndLegalEntityId(accountDetails.getAccountCode(), dto.getLegalEntityId())
-                        .orElseThrow(() -> new RuntimeException("Account not found with code: " + accountDetails.getAccountCode() + " for legal entity ID: " + dto.getLegalEntityId()));
+                        .orElseThrow(() -> new AllocationTemplateException.AccountNotFoundException(accountDetails.getAccountCode(), dto.getLegalEntityId()));
 
                 AccountAllocationTemplateAccount templateAccount = AccountAllocationTemplateAccount.builder()
                         .template(template)
@@ -102,39 +102,38 @@ public class AccountAllocationTemplateService {
         return templateMapper.toDTO(templateRepository.save(template));
     }    public AccountAllocationTemplateDTO updateTemplate(Long id, AccountAllocationTemplateDTO dto) {
         AccountAllocationTemplate template = templateRepository.findById(id)
-                .orElseThrow(() -> new RuntimeException("Template not found with id: " + id));
+                .orElseThrow(() -> new AllocationTemplateException.InvalidTemplateException("Template not found with id: " + id));
 
         if (dto.getLegalEntityId() != null) {
             LegalEntity legalEntity = legalEntityRepository.findById(dto.getLegalEntityId())
-                    .orElseThrow(() -> new RuntimeException("Legal entity not found with id: " + dto.getLegalEntityId()));
+                    .orElseThrow(() -> new AllocationTemplateException.LegalEntityNotFoundException(dto.getLegalEntityId()));
 
             // If legal entity is changing, check code uniqueness in new legal entity
             if (!template.getLegalEntity().getId().equals(dto.getLegalEntityId()) &&
                 templateRepository.existsByCodeAndLegalEntityId(template.getCode(), dto.getLegalEntityId())) {
-                throw new RuntimeException("Template with code " + template.getCode() + " already exists for the target legal entity");
+                throw new AllocationTemplateException.DuplicateTemplateException(template.getCode(), dto.getLegalEntityId());
             }
 
             template.setLegalEntity(legalEntity);
         }
 
         template.setName(dto.getName());
-        template.setDescription(dto.getDescription());
+        template.setDescription(dto.getDescription());String currentUser = SecurityContextHolder.getContext().getAuthentication().getName();
         template.setUpdatedAt(Instant.now());
-        template.setUpdatedBy("SYSTEM"); // TODO: Replace with actual user when security is implemented
+        template.setUpdatedBy(currentUser);
 
         // Clear existing account associations
         template.getTemplateAccounts().clear();
 
         // Add new account associations
         if (dto.getAllocation_details() != null) {
-            for (AccountAllocationDetails accountDetails : dto.getAllocation_details()) {
-                if (accountDetails.getAccountCode() == null || accountDetails.getAccountCode().trim().isEmpty()) {
-                    throw new RuntimeException("Account code is required for all allocation details");
+            for (AccountAllocationDetails accountDetails : dto.getAllocation_details()) {                if (accountDetails.getAccountCode() == null || accountDetails.getAccountCode().trim().isEmpty()) {
+                    throw new AllocationTemplateException.InvalidTemplateException("Account code is required for all allocation details");
                 }
 
                 Long legalEntityId = dto.getLegalEntityId() != null ? dto.getLegalEntityId() : template.getLegalEntity().getId();
                 Account account = accountRepository.findByCodeAndLegalEntityId(accountDetails.getAccountCode(), legalEntityId)
-                        .orElseThrow(() -> new RuntimeException("Account not found with code: " + accountDetails.getAccountCode() + " for legal entity ID: " + legalEntityId));
+                        .orElseThrow(() -> new AllocationTemplateException.AccountNotFoundException(accountDetails.getAccountCode(), legalEntityId));
 
                 AccountAllocationTemplateAccount templateAccount = AccountAllocationTemplateAccount.builder()
                         .template(template)

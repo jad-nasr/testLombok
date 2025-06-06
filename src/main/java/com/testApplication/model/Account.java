@@ -50,6 +50,7 @@ public class Account {
     private Account parentAccount; // Self-referencing FK
 
     @Column(nullable = false)
+    @Builder.Default
     private boolean active = true;
 
     @ManyToOne(fetch = FetchType.LAZY, optional = false)

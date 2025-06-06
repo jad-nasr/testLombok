@@ -2,6 +2,7 @@ package com.testApplication.model;
 
 import jakarta.persistence.*;
 import lombok.*;
+import java.time.Instant;
 
 @Data
 @NoArgsConstructor
@@ -44,4 +45,16 @@ public class LegalEntity {
 
     @Column(nullable = false)
     private String type;
+
+    @Column(name = "created_at")
+    private Instant createdAt;
+
+    @Column(name = "updated_at")
+    private Instant updatedAt;
+    
+    @Column(name = "created_by", length = 100)
+    private String createdBy;
+    
+    @Column(name = "updated_by", length = 100)
+    private String updatedBy;
 }

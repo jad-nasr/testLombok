@@ -1,6 +1,7 @@
 package com.testApplication.controller;
 
 import com.testApplication.dto.TransactionLineDTO;
+import com.testApplication.exception.CsvImportException;
 import com.testApplication.service.CsvImportService;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -82,9 +83,7 @@ class CsvImportControllerTest {
                 .andExpect(jsonPath("$[0].transactionCode").value("TRANS004"))
                 .andExpect(jsonPath("$[0].accountCode").value("ACC001"))
                 .andExpect(jsonPath("$[0].amount").value(1000));
-    }
-
-    @Test
+    }    @Test
     @WithMockUser(roles = "ADMIN")
     void importTransactionLines_InvalidFile_ShouldReturnBadRequest() throws Exception {
         MockMultipartFile invalidFile = new MockMultipartFile(
@@ -94,12 +93,14 @@ class CsvImportControllerTest {
                 "invalid,csv,format".getBytes());
 
         when(csvImportService.importTransactionLinesFromCsv(any(), anyLong()))
-                .thenThrow(new RuntimeException("Invalid CSV format"));
+                .thenThrow(new CsvImportException.InvalidCsvFormatException("Invalid CSV format"));
 
         mockMvc.perform(multipart("/api/import/transaction-lines")
                 .file(invalidFile)
                 .param("legalEntityId", "1"))
-                .andExpect(status().isBadRequest());
+                .andExpect(status().isBadRequest())
+                .andExpect(jsonPath("$.error").value("Invalid CSV format"))
+                .andExpect(jsonPath("$.code").value("INVALID_CSV_FORMAT"));
     }
 
     @Test

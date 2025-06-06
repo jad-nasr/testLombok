@@ -39,6 +39,12 @@ public class Customer {
     @Column(name = "updated_at")
     private Instant updatedAt;
 
+    @Column(name = "created_by", length = 100)
+    private String createdBy;
+    
+    @Column(name = "updated_by", length = 100)
+    private String updatedBy;
+
     @ManyToOne(fetch = FetchType.LAZY, optional = false)
     @JoinColumn(name = "legal_entity_id", nullable = false)
     private LegalEntity legalEntity;

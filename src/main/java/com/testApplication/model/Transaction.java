@@ -54,6 +54,9 @@ public class Transaction {
     @Column(name = "created_by", length = 100, nullable = false)
     private String createdBy;
 
+    @Column(name = "updated_by", length = 100)
+    private String updatedBy;
+
     @Column(name = "transaction_code", nullable = false)
     private String transactionCode;
 }
