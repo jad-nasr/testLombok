@@ -11,5 +11,7 @@ public interface BusinessObject {
      * 
      * @return the legal entity ID, or null if no legal entity is associated
      */
-    
+    default Long getLegalEntityId() {
+        return null;
+    }
 }

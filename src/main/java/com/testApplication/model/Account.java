@@ -14,7 +14,7 @@ import java.time.Instant;
         @UniqueConstraint(columnNames = { "code", "legal_entity_id" }),
         @UniqueConstraint(columnNames = { "name", "legal_entity_id" })
 })
-public class Account implements BusinessObject {
+public class Account {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
