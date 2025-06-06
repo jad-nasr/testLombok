@@ -65,12 +65,10 @@ public class CsvImportService {
 
                 // Get or create Transaction
                 Transaction transaction = transactionCache.computeIfAbsent(transactionCode, code -> {
-                    return transactionRepository.findByTransactionCodeAndLegalEntityId(code, legalEntityId)
+                    return transactionRepository.findByTransactionCodeAndLegalEntity_Id(code, legalEntityId)
                             .orElseGet(() -> createNewTransaction(code, legalEntity));
-                });
-
-                // Get or create Account
-                Account account = accountRepository.findByCodeAndLegalEntityId(accountCode, legalEntityId)
+                });                // Get or create Account
+                Account account = accountRepository.findByCodeAndLegalEntity_Id(accountCode, legalEntityId)
                         .orElseGet(() -> createNewAccount(accountCode, legalEntity));
 
                 // Create TransactionLine

@@ -49,7 +49,7 @@ public class AccountAllocationTemplateService {
                 .map(templateMapper::toDTO);
     }    @Transactional(readOnly = true)
     public Optional<AccountAllocationTemplateDTO> getTemplateByCode(String code) {
-        return templateRepository.findByCodeAndLegalEntityId(code, null)
+        return templateRepository.findByCodeAndLegalEntity_Id(code, null)
                 .map(templateMapper::toDTO);
     }
 
@@ -66,7 +66,7 @@ public class AccountAllocationTemplateService {
         LegalEntity legalEntity = legalEntityRepository.findById(dto.getLegalEntityId())
                 .orElseThrow(() -> new AllocationTemplateException.LegalEntityNotFoundException(dto.getLegalEntityId()));
 
-        if (templateRepository.existsByCodeAndLegalEntityId(dto.getCode(), dto.getLegalEntityId())) {
+        if (templateRepository.existsByCodeAndLegalEntity_Id(dto.getCode(), dto.getLegalEntityId())) {
             throw new AllocationTemplateException.DuplicateTemplateException(dto.getCode(), dto.getLegalEntityId());
         }String currentUser = SecurityContextHolder.getContext().getAuthentication().getName();
         AccountAllocationTemplate template = AccountAllocationTemplate.builder()
@@ -85,7 +85,7 @@ public class AccountAllocationTemplateService {
                     throw new AllocationTemplateException.InvalidTemplateException("Account code is required for all allocation details");
                 }
 
-                Account account = accountRepository.findByCodeAndLegalEntityId(accountDetails.getAccountCode(), dto.getLegalEntityId())
+                Account account = accountRepository.findByCodeAndLegalEntity_Id(accountDetails.getAccountCode(), dto.getLegalEntityId())
                         .orElseThrow(() -> new AllocationTemplateException.AccountNotFoundException(accountDetails.getAccountCode(), dto.getLegalEntityId()));
 
                 AccountAllocationTemplateAccount templateAccount = AccountAllocationTemplateAccount.builder()
@@ -109,7 +109,7 @@ public class AccountAllocationTemplateService {
             Long legalEntityId = dto.getLegalEntityId() != null ? dto.getLegalEntityId() : template.getLegalEntity().getId();
             for (AccountAllocationTemplateDTO.AccountAllocationDetails accountDetails : dto.getAllocation_details()) {
                 if (accountDetails.getAccountCode() != null) {
-                    if (!accountRepository.findByCodeAndLegalEntityId(accountDetails.getAccountCode(), legalEntityId).isPresent()) {
+                    if (!accountRepository.findByCodeAndLegalEntity_Id(accountDetails.getAccountCode(), legalEntityId).isPresent()) {
                         throw new AllocationTemplateException.AccountNotFoundException(accountDetails.getAccountCode(), legalEntityId);
                     }
                 }
@@ -122,7 +122,7 @@ public class AccountAllocationTemplateService {
 
             // If legal entity is changing, check code uniqueness in new legal entity
             if (!template.getLegalEntity().getId().equals(dto.getLegalEntityId()) &&
-                templateRepository.existsByCodeAndLegalEntityId(template.getCode(), dto.getLegalEntityId())) {
+                templateRepository.existsByCodeAndLegalEntity_Id(template.getCode(), dto.getLegalEntityId())) {
                 throw new AllocationTemplateException.DuplicateTemplateException(template.getCode(), dto.getLegalEntityId());
             }
 
@@ -144,7 +144,7 @@ public class AccountAllocationTemplateService {
                 }
 
                 Long legalEntityId = dto.getLegalEntityId() != null ? dto.getLegalEntityId() : template.getLegalEntity().getId();
-                Account account = accountRepository.findByCodeAndLegalEntityId(accountDetails.getAccountCode(), legalEntityId)
+                Account account = accountRepository.findByCodeAndLegalEntity_Id(accountDetails.getAccountCode(), legalEntityId)
                         .orElseThrow(() -> new AllocationTemplateException.AccountNotFoundException(accountDetails.getAccountCode(), legalEntityId));
 
                 AccountAllocationTemplateAccount templateAccount = AccountAllocationTemplateAccount.builder()
@@ -170,6 +170,6 @@ public class AccountAllocationTemplateService {
 
     @Transactional(readOnly = true)
     public List<AccountAllocationTemplateDTO> getTemplatesByLegalEntity(Long legalEntityId) {
-        return templateMapper.toDTOList(templateRepository.findByLegalEntityId(legalEntityId));
+        return templateMapper.toDTOList(templateRepository.findByLegalEntity_Id(legalEntityId));
     }
 }

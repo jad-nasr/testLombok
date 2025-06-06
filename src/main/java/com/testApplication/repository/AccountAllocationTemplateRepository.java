@@ -7,9 +7,8 @@ import java.util.Optional;
 import java.util.List;
 
 @Repository
-public interface AccountAllocationTemplateRepository extends JpaRepository<AccountAllocationTemplate, Long> {
-    Optional<AccountAllocationTemplate> findByCodeAndLegalEntityId(String code, Long legalEntityId);
-    boolean existsByCodeAndLegalEntityId(String code, Long legalEntityId);
+public interface AccountAllocationTemplateRepository extends JpaRepository<AccountAllocationTemplate, Long> {    Optional<AccountAllocationTemplate> findByCodeAndLegalEntity_Id(String code, Long legalEntityId);
+    boolean existsByCodeAndLegalEntity_Id(String code, Long legalEntityId);
     List<AccountAllocationTemplate> findByTemplateAccounts_IsSource(Boolean isSource);
-    List<AccountAllocationTemplate> findByLegalEntityId(Long legalEntityId);
+    List<AccountAllocationTemplate> findByLegalEntity_Id(Long legalEntityId);
 }

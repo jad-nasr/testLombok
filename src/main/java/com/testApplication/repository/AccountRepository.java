@@ -13,6 +13,6 @@ public interface AccountRepository extends JpaRepository<Account, Long> {
     Optional<Account> findByCodeAndLegalEntity(String code, LegalEntity legalEntity);
     List<Account> findByParentAccount(Account parentAccount);
     List<Account> findByLegalEntity(LegalEntity legalEntity); // Added method
-    Optional<Account> findByCodeAndLegalEntityId(String code, Long legalEntityId);
-    boolean existsByCodeAndLegalEntityId(String code, Long legalEntityId);
+    Optional<Account> findByCodeAndLegalEntity_Id(String code, Long legalEntityId);
+    boolean existsByCodeAndLegalEntity_Id(String code, Long legalEntityId);
 }

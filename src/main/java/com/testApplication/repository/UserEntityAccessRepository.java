@@ -7,9 +7,8 @@ import java.util.List;
 import java.util.Optional;
 
 @Repository
-public interface UserEntityAccessRepository extends JpaRepository<UserEntityAccess, Long> {
-    List<UserEntityAccess> findByUserId(Long userId);
-    List<UserEntityAccess> findByLegalEntityId(Long legalEntityId);
-    List<UserEntityAccess> findByUserIdAndActive(Long userId, boolean active);
-    Optional<UserEntityAccess> findByUserIdAndLegalEntityId(Long userId, Long legalEntityId);
+public interface UserEntityAccessRepository extends JpaRepository<UserEntityAccess, Long> {    List<UserEntityAccess> findByUser_Id(Long userId);
+    List<UserEntityAccess> findByLegalEntity_Id(Long legalEntityId);
+    List<UserEntityAccess> findByUser_IdAndActive(Long userId, boolean active);
+    Optional<UserEntityAccess> findByUser_IdAndLegalEntity_Id(Long userId, Long legalEntityId);
 }

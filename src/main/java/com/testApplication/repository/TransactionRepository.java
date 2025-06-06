@@ -15,5 +15,5 @@ public interface TransactionRepository extends JpaRepository<Transaction, Long> 
     List<Transaction> findByCustomerId(Long customerId);
     List<Transaction> findByLegalEntity(LegalEntity legalEntity);
     List<Transaction> findByLegalEntityId(Long legalEntityId);
-    Optional<Transaction> findByTransactionCodeAndLegalEntityId(String transactionCode, Long legalEntityId);
+    Optional<Transaction> findByTransactionCodeAndLegalEntity_Id(String transactionCode, Long legalEntityId);
 }

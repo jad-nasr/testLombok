@@ -43,8 +43,7 @@ public class TransactionService {
                 .map(transactionMapper::toDTO);
     }
 
-    public Optional<TransactionDTO> findByTransactionCodeAndLegalEntity(String transactionCode, Long legalEntityId) {
-        return transactionRepository.findByTransactionCodeAndLegalEntityId(transactionCode, legalEntityId)
+    public Optional<TransactionDTO> findByTransactionCodeAndLegalEntity(String transactionCode, Long legalEntityId) {        return transactionRepository.findByTransactionCodeAndLegalEntity_Id(transactionCode, legalEntityId)
                 .map(transactionMapper::toDTO);
     }
 
@@ -54,11 +53,8 @@ public class TransactionService {
                 .orElseThrow(() -> new RuntimeException("Customer not found"));
                 
         LegalEntity legalEntity = legalEntityRepository.findById(dto.getLegalEntityId())
-                .orElseThrow(() -> new RuntimeException("Legal Entity not found"));
-
-        // Check if transaction already exists
-        Optional<Transaction> existingTransaction = transactionRepository
-                .findByTransactionCodeAndLegalEntityId(dto.getTransactionCode(), dto.getLegalEntityId());
+                .orElseThrow(() -> new RuntimeException("Legal Entity not found"));        // Check if transaction already exists
+        Optional<Transaction> existingTransaction = transactionRepository.findByTransactionCodeAndLegalEntity_Id(dto.getTransactionCode(), dto.getLegalEntityId());
         
         if (existingTransaction.isPresent()) {
             throw new RuntimeException("Transaction already exists for this legal entity");

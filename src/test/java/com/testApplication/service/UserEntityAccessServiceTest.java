@@ -77,8 +77,7 @@ class UserEntityAccessServiceTest {
     @Test
     void grantAccess_WithValidData_ShouldSucceed() {
         when(userRepository.findById(1L)).thenReturn(Optional.of(testUser));
-        when(legalEntityRepository.findById(1L)).thenReturn(Optional.of(testLegalEntity));
-        when(userEntityAccessRepository.findByUserIdAndLegalEntityId(1L, 1L))
+        when(legalEntityRepository.findById(1L)).thenReturn(Optional.of(testLegalEntity));        when(userEntityAccessRepository.findByUser_IdAndLegalEntity_Id(1L, 1L))
                 .thenReturn(Optional.empty());
         when(userEntityAccessRepository.save(any(UserEntityAccess.class)))
                 .thenReturn(testAccess);
@@ -89,23 +88,19 @@ class UserEntityAccessServiceTest {
         assertEquals(1L, result.getUserId());
         assertEquals(1L, result.getLegalEntityId());
         assertTrue(result.isActive());
-    }
-
-    @Test
+    }    @Test
     void grantAccess_WhenAccessExists_ShouldThrowException() {
         when(userRepository.findById(1L)).thenReturn(Optional.of(testUser));
         when(legalEntityRepository.findById(1L)).thenReturn(Optional.of(testLegalEntity));
-        when(userEntityAccessRepository.findByUserIdAndLegalEntityId(1L, 1L))
+        when(userEntityAccessRepository.findByUser_IdAndLegalEntity_Id(1L, 1L))
                 .thenReturn(Optional.of(testAccess));
 
         assertThrows(RuntimeException.class, () ->
             userEntityAccessService.grantAccess(1L, 1L)
         );
-    }
-
-    @Test
+    }    @Test
     void revokeAccess_WithValidData_ShouldSucceed() {
-        when(userEntityAccessRepository.findByUserIdAndLegalEntityId(1L, 1L))
+        when(userEntityAccessRepository.findByUser_IdAndLegalEntity_Id(1L, 1L))
                 .thenReturn(Optional.of(testAccess));
         when(userEntityAccessRepository.save(any(UserEntityAccess.class)))
                 .thenReturn(testAccess);
@@ -116,11 +111,9 @@ class UserEntityAccessServiceTest {
         assertFalse(result.isActive());
         assertNotNull(result.getRevokedAt());
         assertEquals("testUser", result.getRevokedBy());
-    }
-
-    @Test
+    }    @Test
     void getUserAccessesByLegalEntity_ShouldReturnList() {
-        when(userEntityAccessRepository.findByLegalEntityId(anyLong()))
+        when(userEntityAccessRepository.findByLegalEntity_Id(anyLong()))
                 .thenReturn(Arrays.asList(testAccess));
 
         List<UserEntityAccessDTO> result = userEntityAccessService.getUserAccessesByLegalEntity(1L);
@@ -128,11 +121,9 @@ class UserEntityAccessServiceTest {
         assertFalse(result.isEmpty());
         assertEquals(1, result.size());
         assertEquals(1L, result.get(0).getUserId());
-    }
-
-    @Test
+    }    @Test
     void getLegalEntityAccessesByUser_ShouldReturnList() {
-        when(userEntityAccessRepository.findByUserId(anyLong()))
+        when(userEntityAccessRepository.findByUser_Id(anyLong()))
                 .thenReturn(Arrays.asList(testAccess));
 
         List<UserEntityAccessDTO> result = userEntityAccessService.getLegalEntityAccessesByUser(1L);

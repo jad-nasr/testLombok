@@ -37,10 +37,8 @@ public class UserEntityAccessService {
         LegalEntity legalEntity = legalEntityRepository.findById(legalEntityId)
                 .orElseThrow(() -> new RuntimeException("Legal Entity not found"));
 
-        String currentUser = SecurityContextHolder.getContext().getAuthentication().getName();
-
-        UserEntityAccess existingAccess = userEntityAccessRepository
-                .findByUserIdAndLegalEntityId(userId, legalEntityId)
+        String currentUser = SecurityContextHolder.getContext().getAuthentication().getName();        UserEntityAccess existingAccess = userEntityAccessRepository
+                .findByUser_IdAndLegalEntity_Id(userId, legalEntityId)
                 .orElse(null);
 
         if (existingAccess != null && existingAccess.isActive()) {
@@ -61,7 +59,7 @@ public class UserEntityAccessService {
     @Transactional
     public UserEntityAccessDTO revokeAccess(Long userId, Long legalEntityId) {
         UserEntityAccess access = userEntityAccessRepository
-                .findByUserIdAndLegalEntityId(userId, legalEntityId)
+                .findByUser_IdAndLegalEntity_Id(userId, legalEntityId)
                 .orElseThrow(() -> new RuntimeException("Access not found"));
 
         if (!access.isActive()) {
@@ -77,14 +75,14 @@ public class UserEntityAccessService {
     }
 
     public List<UserEntityAccessDTO> getUserAccessesByLegalEntity(Long legalEntityId) {
-        return userEntityAccessRepository.findByLegalEntityId(legalEntityId)
+        return userEntityAccessRepository.findByLegalEntity_Id(legalEntityId)
                 .stream()
                 .map(this::toDTO)
                 .collect(Collectors.toList());
     }
 
     public List<UserEntityAccessDTO> getLegalEntityAccessesByUser(Long userId) {
-        return userEntityAccessRepository.findByUserId(userId)
+        return userEntityAccessRepository.findByUser_Id(userId)
                 .stream()
                 .map(this::toDTO)
                 .collect(Collectors.toList());

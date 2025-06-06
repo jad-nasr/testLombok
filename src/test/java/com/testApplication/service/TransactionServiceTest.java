@@ -139,11 +139,10 @@ class TransactionServiceTest {
     }
 
     @Test
-    void createTransaction_WithValidData_ShouldSucceed() {
-        // Arrange
+    void createTransaction_WithValidData_ShouldSucceed() {        // Arrange
         when(customerRepository.findById(1L)).thenReturn(Optional.of(testCustomer));
         when(legalEntityRepository.findById(1L)).thenReturn(Optional.of(testLegalEntity));
-        when(transactionRepository.findByTransactionCodeAndLegalEntityId(anyString(), anyLong()))
+        when(transactionRepository.findByTransactionCodeAndLegalEntity_Id(anyString(), anyLong()))
             .thenReturn(Optional.empty());
         when(transactionRepository.save(any(Transaction.class))).thenReturn(testTransaction);
         when(transactionMapper.toDTO(any(Transaction.class))).thenReturn(testTransactionDTO);
@@ -162,8 +161,7 @@ class TransactionServiceTest {
     void createTransaction_WithExistingCode_ShouldThrowException() {
         // Arrange
         when(customerRepository.findById(1L)).thenReturn(Optional.of(testCustomer));
-        when(legalEntityRepository.findById(1L)).thenReturn(Optional.of(testLegalEntity));
-        when(transactionRepository.findByTransactionCodeAndLegalEntityId(anyString(), anyLong()))
+        when(legalEntityRepository.findById(1L)).thenReturn(Optional.of(testLegalEntity));        when(transactionRepository.findByTransactionCodeAndLegalEntity_Id(anyString(), anyLong()))
             .thenReturn(Optional.of(testTransaction));
 
         // Act & Assert
@@ -270,7 +268,7 @@ class TransactionServiceTest {
     @Test
     void findByTransactionCodeAndLegalEntity_WhenExists_ShouldReturnTransaction() {
         // Arrange
-        when(transactionRepository.findByTransactionCodeAndLegalEntityId("TRX001", 1L))
+        when(transactionRepository.findByTransactionCodeAndLegalEntity_Id("TRX001", 1L))
             .thenReturn(Optional.of(testTransaction));
         when(transactionMapper.toDTO(testTransaction)).thenReturn(testTransactionDTO);
 

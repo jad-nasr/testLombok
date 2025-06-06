@@ -122,9 +122,9 @@ class CsvImportServiceTest {
     void importTransactionLines_ValidFile_ShouldSucceed() throws IOException {
         // Arrange
         when(legalEntityRepository.findById(1L)).thenReturn(Optional.of(testLegalEntity));
-        when(accountRepository.findByCodeAndLegalEntityId(anyString(), anyLong()))
+        when(accountRepository.findByCodeAndLegalEntity_Id(anyString(), anyLong()))
             .thenReturn(Optional.of(testAccount));
-        when(transactionRepository.findByTransactionCodeAndLegalEntityId(anyString(), anyLong()))
+        when(transactionRepository.findByTransactionCodeAndLegalEntity_Id(anyString(), anyLong()))
             .thenReturn(Optional.empty())
             .thenReturn(Optional.of(testTransaction));
         when(transactionLineRepository.saveAll(any())).thenReturn(Arrays.asList(testTransactionLine));
@@ -198,11 +198,11 @@ class CsvImportServiceTest {
             .build();
 
         when(legalEntityRepository.findById(1L)).thenReturn(Optional.of(testLegalEntity));
-        when(accountRepository.findByCodeAndLegalEntityId(eq("NEW_ACC001"), anyLong()))
+        when(accountRepository.findByCodeAndLegalEntity_Id(eq("NEW_ACC001"), anyLong()))
             .thenReturn(Optional.empty());
         when(accountTypeRepository.findByCode("CURRENT_ASSET")).thenReturn(Optional.of(testAccountType));
         when(accountRepository.save(any())).thenReturn(newAccount);
-        when(transactionRepository.findByTransactionCodeAndLegalEntityId(anyString(), anyLong()))
+        when(transactionRepository.findByTransactionCodeAndLegalEntity_Id(anyString(), anyLong()))
             .thenReturn(Optional.empty());
         when(transactionRepository.save(any())).thenReturn(testTransaction);
         when(transactionLineRepository.saveAll(any())).thenReturn(Arrays.asList(testTransactionLine));
@@ -216,7 +216,7 @@ class CsvImportServiceTest {
         assertFalse(result.isEmpty());
         
         // Verify account creation behavior
-        verify(accountRepository, times(1)).findByCodeAndLegalEntityId(eq("NEW_ACC001"), anyLong());
+        verify(accountRepository, times(1)).findByCodeAndLegalEntity_Id(eq("NEW_ACC001"), anyLong());
         verify(accountTypeRepository, times(1)).findByCode("CURRENT_ASSET");
         verify(accountRepository, times(1)).save(argThat(account -> 
             account.getCode().equals("NEW_ACC001") &&
@@ -231,7 +231,7 @@ class CsvImportServiceTest {
     void importTransactionLinesFromCsv_AccountTypeNotFound_ShouldThrowException() {
         // Arrange
         when(legalEntityRepository.findById(1L)).thenReturn(Optional.of(testLegalEntity));
-        when(accountRepository.findByCodeAndLegalEntityId(anyString(), anyLong()))
+        when(accountRepository.findByCodeAndLegalEntity_Id(anyString(), anyLong()))
             .thenReturn(Optional.empty());        when(accountTypeRepository.findByCode("CURRENT_ASSET")).thenReturn(Optional.empty());
 
         // Act & Assert
@@ -245,9 +245,9 @@ class CsvImportServiceTest {
     void importTransactionLines_ExistingTransaction_ShouldReuseTransaction() {
         // Arrange
         when(legalEntityRepository.findById(1L)).thenReturn(Optional.of(testLegalEntity));
-        when(accountRepository.findByCodeAndLegalEntityId(anyString(), anyLong()))
+        when(accountRepository.findByCodeAndLegalEntity_Id(anyString(), anyLong()))
             .thenReturn(Optional.of(testAccount));
-        when(transactionRepository.findByTransactionCodeAndLegalEntityId(anyString(), anyLong()))
+        when(transactionRepository.findByTransactionCodeAndLegalEntity_Id(anyString(), anyLong()))
             .thenReturn(Optional.of(testTransaction));
         when(transactionLineRepository.saveAll(any())).thenReturn(Arrays.asList(testTransactionLine));
         when(transactionLineMapper.toDTOList(any())).thenReturn(Arrays.asList(testTransactionLineDTO));

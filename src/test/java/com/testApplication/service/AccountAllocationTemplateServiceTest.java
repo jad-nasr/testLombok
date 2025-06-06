@@ -165,7 +165,7 @@ class AccountAllocationTemplateServiceTest {
     void createTemplate_WithValidData_ShouldCreateTemplate() {
         // Arrange
         when(legalEntityRepository.findById(1L)).thenReturn(Optional.of(testLegalEntity));
-        when(accountRepository.findByCodeAndLegalEntityId("TEST001", 1L)).thenReturn(Optional.of(testAccount));
+        when(accountRepository.findByCodeAndLegalEntity_Id("TEST001", 1L)).thenReturn(Optional.of(testAccount));
         when(templateRepository.save(any(AccountAllocationTemplate.class))).thenReturn(testTemplate);
         when(templateMapper.toDTO(testTemplate)).thenReturn(testTemplateDTO);
 
@@ -199,7 +199,7 @@ class AccountAllocationTemplateServiceTest {
     void createTemplate_WithInvalidAccount_ShouldThrowException() {
         // Arrange
         when(legalEntityRepository.findById(1L)).thenReturn(Optional.of(testLegalEntity));
-        when(accountRepository.findByCodeAndLegalEntityId("INVALID", 1L)).thenReturn(Optional.empty());
+        when(accountRepository.findByCodeAndLegalEntity_Id("INVALID", 1L)).thenReturn(Optional.empty());
         
         testAccountDetails.clear();
         testAccountDetails.add(AccountAllocationTemplateDTO.AccountAllocationDetails.builder()
@@ -221,7 +221,7 @@ class AccountAllocationTemplateServiceTest {
         // Arrange
         when(templateRepository.findById(1L)).thenReturn(Optional.of(testTemplate));
         when(legalEntityRepository.findById(1L)).thenReturn(Optional.of(testLegalEntity));
-        when(accountRepository.findByCodeAndLegalEntityId("TEST001", 1L)).thenReturn(Optional.of(testAccount));
+        when(accountRepository.findByCodeAndLegalEntity_Id("TEST001", 1L)).thenReturn(Optional.of(testAccount));
         when(templateRepository.save(any(AccountAllocationTemplate.class))).thenReturn(testTemplate);
         when(templateMapper.toDTO(testTemplate)).thenReturn(testTemplateDTO);
 
@@ -254,7 +254,7 @@ class AccountAllocationTemplateServiceTest {
     void updateTemplate_WithInvalidAccount_ShouldThrowException() {
         // Arrange
         when(templateRepository.findById(1L)).thenReturn(Optional.of(testTemplate));
-        when(accountRepository.findByCodeAndLegalEntityId("INVALID", 1L)).thenReturn(Optional.empty());
+        when(accountRepository.findByCodeAndLegalEntity_Id("INVALID", 1L)).thenReturn(Optional.empty());
         
         testAccountDetails.clear();
         testAccountDetails.add(AccountAllocationTemplateDTO.AccountAllocationDetails.builder()
@@ -291,7 +291,7 @@ class AccountAllocationTemplateServiceTest {
     @Test
     void getTemplatesByLegalEntity_ShouldReturnTemplatesForLegalEntity() {
         // Arrange
-        when(templateRepository.findByLegalEntityId(1L))
+        when(templateRepository.findByLegalEntity_Id(1L))
                 .thenReturn(List.of(testTemplate));
         when(templateMapper.toDTOList(anyList())).thenReturn(List.of(testTemplateDTO));
 
@@ -303,7 +303,7 @@ class AccountAllocationTemplateServiceTest {
         assertEquals(1, result.size());
         assertEquals(testTemplateDTO.getLegalEntityId(), result.get(0).getLegalEntityId());
         assertEquals(testTemplateDTO.getLegalEntityName(), result.get(0).getLegalEntityName());
-        verify(templateRepository).findByLegalEntityId(1L);
+        verify(templateRepository).findByLegalEntity_Id(1L);
         verify(templateMapper).toDTOList(anyList());
     }
 }
